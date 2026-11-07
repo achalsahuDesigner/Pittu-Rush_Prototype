@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="description" content="Smash the stack, then rebuild it before the gully kids hit you with the ball. A 3D browser take on Pittu, the Indian street game.">
+<meta name="description" content="Smash the stack, then rebuild it before the gully kids hit you with the ball. Solo, or online with up to 8 friends. A 3D browser take on Pittu, the Indian street game.">
 <meta name="theme-color" content="#22235F">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Pittu Rush">
-<meta property="og:description" content="Smash the stack, then rebuild it before the gully kids hit you with the ball. A 3D browser take on Pittu, the Indian street game.">
+<meta property="og:description" content="Smash the stack, then rebuild it before the gully kids hit you with the ball. Solo, or online with up to 8 friends. A 3D browser take on Pittu, the Indian street game.">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2322235F'/%3E%3Crect x='14' y='44' width='36' height='7' rx='2' fill='%238A909A'/%3E%3Crect x='18' y='35' width='28' height='7' rx='2' fill='%23565C68'/%3E%3Crect x='22' y='26' width='20' height='7' rx='2' fill='%238A909A'/%3E%3Crect x='26' y='17' width='12' height='7' rx='2' fill='%23565C68'/%3E%3Ccircle cx='50' cy='18' r='6' fill='%23D9E84A'/%3E%3C/svg%3E">
 <style>
@@ -207,6 +207,111 @@ body{
 #coach .cbar i{display:block; height:100%; background:var(--teal)}
 @media (max-width:380px){ .stats{grid-template-columns:repeat(2, minmax(0,1fr))} .chips{grid-template-columns:1fr} }
 
+
+/* ================= v2: console-style polish + online ================= */
+.plate{background:linear-gradient(180deg, rgba(52,54,138,.94), rgba(30,31,86,.94)); border:1.5px solid rgba(242,168,29,.9); border-radius:12px;
+  box-shadow:0 8px 22px rgba(8,8,36,.35), inset 0 1px 0 rgba(255,255,255,.14), 0 3px 0 var(--ink); backdrop-filter:blur(6px)}
+#pauseBtn{background:linear-gradient(180deg, #34368A, #1E1F56); border-width:1.5px; box-shadow:0 8px 22px rgba(8,8,36,.35), inset 0 1px 0 rgba(255,255,255,.14), 0 3px 0 var(--ink)}
+.btn{transition:transform .12s ease, box-shadow .12s ease, filter .12s ease; position:relative; overflow:hidden}
+.btn.primary{background:linear-gradient(180deg, #FFC24A, #F2A81D 55%, #E3940C); box-shadow:0 4px 0 var(--marigold-deep), 0 10px 24px rgba(242,168,29,.28)}
+.btn.primary::after{content:""; position:absolute; top:0; bottom:0; width:40%; left:-60%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent); transform:skewX(-18deg); transition:left .5s ease}
+.btn:hover{filter:brightness(1.06)} .btn.primary:hover::after{left:120%}
+.btn:hover:not(:active){transform:translateY(-1px)}
+.btn.ghost{background:rgba(255,247,230,.04)}
+.btn.ghost:hover{border-color:var(--chalk); background:rgba(255,247,230,.08)}
+.btn:disabled{opacity:.45; cursor:not-allowed; filter:none; transform:none}
+.btn.online{grid-column:1 / -1; min-height:68px; background:linear-gradient(110deg, #1C7C75 0%, #2A8C84 38%, #2F3FA0 100%); border:1.5px solid rgba(255,247,230,.35);
+  box-shadow:0 4px 0 #0E4D48, 0 12px 28px rgba(42,140,132,.3); flex-direction:row; align-items:center}
+.btn.online .ol{display:flex; flex-direction:column; gap:2px}
+.btn.online .dots{display:flex; gap:4px; margin-left:auto}
+.btn.online .dots i{width:9px; height:9px; border-radius:50%; background:#F28C28; box-shadow:0 0 0 2px rgba(21,22,58,.35)}
+.btn.online .dots i:nth-child(n+5){background:#5B9BE6}
+.badge{font-size:11px; font-weight:800; letter-spacing:.12em; background:var(--marigold); color:var(--indigo); border-radius:999px; padding:2px 8px; flex:none}
+.title{text-shadow:0 4px 0 var(--ink), 0 14px 32px rgba(0,0,0,.25)}
+@media (min-width:980px){
+  #menu{place-items:center start; padding-left:max(64px, env(safe-area-inset-left,0px)); background:linear-gradient(90deg, rgba(13,14,44,.9) 0%, rgba(13,14,44,.66) 34%, rgba(13,14,44,.12) 60%, rgba(13,14,44,0) 70%)}
+  #menu .panel.menu{background:transparent; border:0; box-shadow:none; padding:8px 10px 8px 4px; max-width:520px; gap:13px}
+  #menu .panel.menu::before{display:none}
+  #menu .title{font-size:clamp(64px, 11vh, 100px); line-height:.9; letter-spacing:-.01em}
+  #menu .lede{font-size:17px}
+  #menu .stackrow, #menu .team{background:rgba(48,50,127,.72); backdrop-filter:blur(8px)}
+  #menu .playrow .btn{min-height:72px}
+  .menuver{position:fixed; right:24px; bottom:18px; z-index:21; font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,247,230,.7); text-shadow:0 1px 0 var(--ink)}
+}
+@media (max-width:979px){ .menuver{display:none} }
+/* stripe accent on panels */
+.panel.wide{max-width:860px}
+.panel.mid{max-width:520px}
+.frow{display:flex; flex-direction:column; gap:6px}
+.inp{font:inherit; font-size:18px; font-weight:700; color:var(--chalk); background:rgba(13,14,44,.55); border:2px solid var(--muted); border-radius:12px; padding:10px 14px; outline:none; width:100%; box-sizing:border-box}
+.inp:focus{border-color:var(--marigold); box-shadow:0 0 0 4px rgba(242,168,29,.18)}
+.inp.code{font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:26px; letter-spacing:.42em; text-transform:uppercase; text-align:center; padding:8px 10px}
+.joinrow{display:grid; grid-template-columns:1fr auto; gap:10px}
+.or{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase}
+.or::before, .or::after{content:""; flex:1; height:1px; background:rgba(184,186,232,.35)}
+.status{font-size:14px; font-weight:700; background:rgba(42,140,132,.25); border:1.5px solid var(--teal); border-radius:10px; padding:8px 12px}
+.status.bad{background:rgba(200,68,47,.22); border-color:var(--brick)}
+.lbhead{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap}
+.codebox{display:flex; gap:6px}
+.codebox span{width:46px; height:58px; display:grid; place-items:center; font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:32px; font-weight:800; color:var(--indigo);
+  background:linear-gradient(180deg, #FFF7E6, #F0E3C6); border-radius:10px; box-shadow:0 4px 0 #C9B48C}
+.lbteams{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.lbteam{background:rgba(13,14,44,.45); border-radius:16px; padding:12px; border-top:5px solid var(--marigold); display:flex; flex-direction:column; gap:8px}
+.lbteam.t1{border-top-color:#5B9BE6}
+.lbteam .th{display:flex; justify-content:space-between; align-items:baseline}
+.lbteam .tname{font-family:var(--f-display); font-size:26px; color:var(--marigold)} .lbteam.t1 .tname{color:#8EC5FF}
+.lbteam .tcount{font-size:13px; font-weight:800; color:var(--muted)}
+.slots{display:flex; flex-direction:column; gap:6px}
+.slot{display:flex; align-items:center; gap:10px; background:rgba(255,247,230,.04); border:1.5px dashed rgba(184,186,232,.35); border-radius:10px; padding:6px 8px; min-height:34px}
+.slot.filled{background:rgba(48,50,127,.85); border:1.5px solid rgba(255,247,230,.18)}
+.slot.me{border-color:var(--teal); box-shadow:0 0 0 2px rgba(42,140,132,.35)}
+.slot .av{flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-weight:800; background:var(--marigold); color:var(--indigo)}
+.lbteam.t1 .slot .av{background:#5B9BE6; color:#fff}
+.slot .av.bot{background:rgba(184,186,232,.2) !important; color:var(--muted) !important}
+.slot .sn{flex:1; min-width:0; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.slot:not(.filled) .sn{color:var(--muted); font-weight:600}
+.sb{font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; border-radius:999px; padding:2px 7px; background:rgba(184,186,232,.2); color:var(--muted)}
+.sb.host{background:var(--marigold); color:var(--indigo)} .sb.you{background:var(--teal); color:var(--chalk)}
+.lbfoot{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.lbfoot .grow{flex:1}
+.lbfoot .btn{min-height:52px}
+.waitpill{display:flex; align-items:center; gap:10px; font-weight:800; color:var(--muted)}
+.waitpill i{width:10px; height:10px; border-radius:50%; background:var(--teal); animation:blink .7s infinite alternate}
+@media (max-width:640px){ .lbteams{grid-template-columns:1fr} .codebox span{width:38px; height:48px; font-size:26px} }
+/* online HUD */
+#netHud{position:fixed; z-index:5; top:calc(env(safe-area-inset-top,0px) + 10px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px; pointer-events:none}
+.sboard{display:flex; align-items:stretch; border-radius:14px; overflow:hidden; box-shadow:0 10px 26px rgba(8,8,36,.4), 0 3px 0 var(--ink)}
+.st{display:flex; align-items:center; gap:10px; padding:5px 12px; background:linear-gradient(180deg, #34368A, #1E1F56); color:var(--chalk); min-width:132px}
+.st.b{flex-direction:row-reverse; text-align:right}
+.st .tn{font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; line-height:1.15}
+.st .tr{font-size:11px; font-weight:700; color:var(--muted); line-height:1.15}
+.st .sv{font-size:30px; font-weight:800; line-height:1; font-variant-numeric:tabular-nums; min-width:22px; text-align:center}
+.st.a .sv{color:var(--marigold)} .st.b .sv{color:#8EC5FF}
+.st.building .tr{color:#FFB36B}
+.st.mine{box-shadow:inset 0 -3px 0 var(--teal)}
+.st .tn::after{content:""}
+.sround{display:grid; place-items:center; padding:0 12px; background:var(--marigold); color:var(--indigo); font-weight:800; font-size:13px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap}
+.nrole{font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; border-radius:999px; padding:3px 12px; background:rgba(21,22,58,.8); color:var(--chalk); border:1.5px solid var(--muted)}
+.nrole.build{border-color:#F28C28; color:#FFC48F} .nrole.field{border-color:#5B9BE6; color:#BFDCFF}
+#feed{position:fixed; z-index:5; left:50%; transform:translateX(-50%); top:calc(env(safe-area-inset-top,0px) + 96px); display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:none}
+.fi{font-size:14px; font-weight:800; color:var(--chalk); background:rgba(21,22,58,.78); border-left:4px solid var(--teal); border-radius:8px; padding:4px 12px; animation:slidein .25s ease-out; transition:opacity .5s, transform .5s}
+.fi.gold{border-left-color:var(--marigold)} .fi.red{border-left-color:#FF6B57}
+.fi.gone{opacity:0; transform:translateY(-6px)}
+#netToast{position:fixed; z-index:30; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom,0px) + 64px); background:var(--chalk); color:var(--ink); font-weight:800; border-radius:12px; padding:10px 16px; box-shadow:0 5px 0 var(--ink); max-width:calc(100% - 32px)}
+body.net .hud .lrow .plate{display:none}
+@media (max-width:760px){ #netHud{top:calc(env(safe-area-inset-top,0px) + 100px)} .btn.online .dots{display:none} .nrole{display:none} .st{min-width:0; padding:4px 9px; gap:6px} .st .tr{display:none} .st .sv{font-size:22px} .st .tn{font-size:10px} .sround{font-size:11px; padding:0 8px} #feed{top:calc(env(safe-area-inset-top,0px) + 146px)} }
+/* results */
+.scoreline{display:flex; align-items:center; justify-content:center; gap:18px; font-size:64px; font-weight:800; line-height:1; font-variant-numeric:tabular-nums}
+.scoreline .a{color:var(--marigold)} .scoreline .b{color:#8EC5FF} .scoreline .dash{color:var(--muted); font-size:40px}
+.rtable{display:flex; flex-direction:column; gap:4px}
+.rr{display:grid; grid-template-columns:1fr 56px 56px 56px; gap:8px; align-items:center; background:rgba(48,50,127,.85); border-radius:10px; padding:7px 10px; font-weight:800; font-variant-numeric:tabular-nums}
+.rr span:not(:first-child){text-align:center}
+.rr.head{background:transparent; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--marigold); padding:0 10px}
+.rr.me{box-shadow:inset 0 0 0 2px var(--teal)}
+.tdot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; background:var(--marigold)} .tdot.t1{background:#5B9BE6}
+.mvp{font-size:10px; letter-spacing:.1em; background:var(--marigold); color:var(--indigo); border-radius:999px; padding:1px 6px; margin-left:6px}
+@keyframes slidein{from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:none}}
+
 @keyframes rise{from{opacity:1; margin-top:0} to{opacity:0; margin-top:-60px}}
 @keyframes pop{from{transform:scale(.4); opacity:0} to{transform:scale(1); opacity:1}}
 @keyframes blink{to{opacity:.35}}
@@ -247,6 +352,16 @@ body{
     <button id="muteBtn" type="button">Sound on</button>
   </div>
 </div>
+<div id="netHud" hidden>
+  <div class="sboard">
+    <div class="st a" id="ntA"><div><div class="tn">Team Gilli</div><div class="tr" id="nrA">Builders</div></div><div class="sv" id="nsA">0</div></div>
+    <div class="sround" id="nsRound">Round 1</div>
+    <div class="st b" id="ntB"><div><div class="tn">Team Danda</div><div class="tr" id="nrB">Fielders</div></div><div class="sv" id="nsB">0</div></div>
+  </div>
+  <div class="nrole" id="nRole">You</div>
+</div>
+<div id="feed"></div>
+<div id="netToast" hidden></div>
 <div id="hint" hidden></div>
 <div id="banner" hidden><div class="t" id="bannerT">PITTU!</div><div class="s" id="bannerS"></div></div>
 <div id="power" hidden><div class="l"><span>Soft</span><span>Smash</span></div><div class="bar"><div class="fill" id="powerFill"></div></div></div>
@@ -288,12 +403,14 @@ body{
       <button class="btn primary" id="dailyBtn" type="button"><span class="bt">Daily Gully</span><span class="bs" id="dailySub">Same street for everyone</span><span class="kv" id="dailyBest"></span></button>
       <button class="btn ghost" id="freeBtn" type="button"><span class="bt">Free Play</span><span class="bs" id="freeSub">New street, 7 slabs</span><span class="kv" id="freeBest"></span></button>
     </div>
+    <button class="btn online" id="onlineBtn" type="button"><span class="ol"><span class="bt">Play Online</span><span class="bs">Room code · up to 8 friends · 4 v 4</span></span><span class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="badge">NEW</span></button>
     <div class="rival" id="rivalLine" hidden></div>
     <div class="menufoot">
       <button class="linkbtn" id="howBtn" type="button">How to play</button>
       <button class="linkbtn" id="practiceBtn" type="button">Practice</button>
       <button class="linkbtn" id="loadBtn" type="button" aria-expanded="false">Loadout</button>
     </div>
+    <div class="menuver">Pittu Rush · v2 · online beta</div>
     <div class="sect" id="loadSect" hidden>
       <div class="label" id="loadLabel">Loadout</div>
       <div class="chips" id="chips"></div>
@@ -371,8 +488,86 @@ body{
   </div>
 </div>
 
+
+<div class="screen" id="online" hidden>
+  <div class="panel mid">
+    <div>
+      <div class="label">Play online · up to 8</div>
+      <h2 class="title" style="font-size:clamp(40px,11vw,58px)">Gully, online</h2>
+    </div>
+    <p class="lede">Make a room and share the code. Friends join from any browser, 4 a side. Bots fill empty seats.</p>
+    <div class="frow"><label class="label" for="netName">Your name</label><input class="inp" id="netName" maxlength="12" autocomplete="nickname" placeholder="e.g. Achal"></div>
+    <button class="btn primary" id="netCreate" type="button"><span class="bt">Create a room</span><span class="bs">You host · keep this tab open</span></button>
+    <div class="or">or join a friend</div>
+    <div class="joinrow"><input class="inp code" id="netCode" maxlength="5" autocomplete="off" spellcheck="false" placeholder="CODE" aria-label="Room code"><button class="btn ghost" id="netJoin" type="button"><span class="bt">Join</span></button></div>
+    <div class="status" id="netStatus" hidden></div>
+    <div class="btns"><button class="btn ghost" id="netBack" type="button"><span class="bt">Back</span><span class="bs">Esc</span></button></div>
+    <div class="foot">Peer-to-peer: the host's browser runs the match, so nobody needs an account. A few strict networks (some offices and mobile data) can block the connection.</div>
+  </div>
+</div>
+
+<div class="screen" id="lobby" hidden>
+  <div class="panel wide">
+    <div class="lbhead">
+      <div>
+        <div class="label">Room code</div>
+        <div class="codebox" id="lbCodeBox"></div>
+        <div style="display:none" id="lbCode"></div>
+      </div>
+      <button class="linkbtn" id="lbCopy" type="button">Copy invite link</button>
+    </div>
+    <div class="foot" id="lbStatus"></div>
+    <div class="lbteams">
+      <div class="lbteam t0" id="lbTeam0"><div class="th"><span class="tname">Team Gilli</span><span class="tcount"></span></div><div class="slots"></div></div>
+      <div class="lbteam t1" id="lbTeam1"><div class="th"><span class="tname">Team Danda</span><span class="tcount"></span></div><div class="slots"></div></div>
+    </div>
+    <div class="foot">Teams swap every round: one team smashes and rebuilds, the other fields. Fielders move freely, but once you hold the ball you are rooted until you throw or pass.</div>
+    <div class="lbfoot">
+      <button class="btn ghost" id="lbLeave" type="button"><span class="bt">Leave</span></button>
+      <button class="btn ghost" id="lbSwitch" type="button"><span class="bt">Switch team</span></button>
+      <span class="grow"></span>
+      <div class="waitpill" id="lbWait" hidden><i></i>Waiting for the host to start</div>
+      <button class="btn primary" id="lbStart" type="button" hidden><span class="bt">Start match</span><span class="bs">Bots fill empty seats</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="netMenu" hidden>
+  <div class="panel mid">
+    <div><div class="label">Online match</div><h2 class="title" id="nmTitle" style="font-size:clamp(36px,10vw,50px)">Room</h2></div>
+    <p class="lede">The match keeps running while this menu is open.</p>
+    <div class="btns">
+      <button class="btn primary" id="nmResume" type="button"><span class="bt">Back to the game</span><span class="bs">Esc</span></button>
+      <button class="btn ghost" id="nmLeave" type="button"><span class="bt">Leave match</span><span class="bs">A bot takes your place</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="netover" hidden>
+  <div class="panel mid">
+    <div><div class="label">Match over</div><h2 class="title" id="roTitle" style="font-size:clamp(38px,10vw,56px)">Team Gilli win!</h2></div>
+    <p class="lede" id="roSub"></p>
+    <div class="scoreline" id="roScore"></div>
+    <div class="rtable" id="roTable"></div>
+    <div class="btns">
+      <button class="btn primary" id="roRematch" type="button"><span class="bt">Rematch</span><span class="bs">Back to the lobby with everyone</span></button>
+      <div class="waitpill" id="roWait" hidden><i></i>Waiting for the host to call a rematch</div>
+      <button class="btn ghost" id="roLeave" type="button"><span class="bt">Leave room</span></button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+<script>/* Trystero 0.26.0 (MIT) · WebRTC rooms over public Nostr relays */
+(()=>{var To=Object.defineProperty;var Ao=(e,t,n)=>t in e?To(e,t,{enumerable:!0,configurable:!0,writable:!0,value:n}):e[t]=n;var le=(e,t,n)=>Ao(e,typeof t!="symbol"?t+"":t,n);var Ft=Object.freeze,Ie=BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"),et=BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"),Wn=BigInt("0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"),Kn=BigInt("0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"),Ro=Ft({p:Ie,n:et,h:BigInt(1),a:BigInt(0),b:BigInt(7),Gx:Wn,Gy:Kn}),Ee=32,In=e=>e instanceof Uint8Array||ArrayBuffer.isView(e)&&e.constructor.name==="Uint8Array"&&e.BYTES_PER_ELEMENT===1,ve=(e,t,n="")=>{if(In(e)&&(t===void 0||e.length===t))return e;let o=In(e),s=t!==void 0?` of length ${t}`:"",i=o?`length=${e.length}`:`type=${typeof e}`,r=(n?`"${n}" `:"")+"expected Uint8Array"+s+", got "+i;throw o?new RangeError(r):new TypeError(r)},Eo=e=>Uint8Array.from(e),Mo=(e,t,n)=>Eo(ve(e,n,t)),Vn=(e,t)=>e.toString(16).padStart(t,"0"),Jn=e=>{let t="";for(let n of ve(e))t+=Vn(n,2);return t},Gn=e=>{let t="hex invalid";if(typeof e!="string")throw new TypeError(t);if(e.length%2||!/^[\da-f]*$/i.test(e))throw new RangeError(t);let n=new Uint8Array(e.length/2);for(let o=0,s=0;o<n.length;o++,s+=2){let i=e.charCodeAt(s),r=e.charCodeAt(s+1);n[o]=((i&15)+(i>>6)*9)*16+(r&15)+(r>>6)*9}return n},Nn=()=>{var t;let e=(t=globalThis==null?void 0:globalThis.crypto)==null?void 0:t.subtle;if(e)return e;throw new Error("crypto.subtle must be defined, consider polyfill")},Ze=(...e)=>{let t=0;for(let s of e)t+=ve(s).length;let n=new Uint8Array(t),o=0;for(let s of e)n.set(s,o),o+=s.length;return n},qt=(e=Ee)=>{let t=globalThis==null?void 0:globalThis.crypto;if(typeof(t==null?void 0:t.getRandomValues)!="function")throw new Error("crypto.getRandomValues must be defined, consider polyfill");return t.getRandomValues(new Uint8Array(e))},Do=BigInt,tt=(e,t,n,o="bad number: out of range")=>{if(typeof e!="bigint")throw new TypeError(o);if(t<=e&&e<n)return e;throw new RangeError(o)},H=(e,t=Ie)=>(e%=t)>=BigInt(0)?e:t+e,vt=e=>H(e,et),Bo=(e,t)=>{if(e===BigInt(0))throw new Error("invert: expected non-zero number");if(t<=BigInt(1))throw new Error("invert: expected modulus > 1, got "+t);let n=H(e,t),o=t,s=BigInt(0),i=BigInt(1);for(;n!==BigInt(0);){let a=o/n,y=o-n*a,c=s-i*a;o=n,n=y,s=i,i=c}if(o!==BigInt(1))throw new Error("invert: does not exist");return H(s,t)},Zn=e=>{let t=xo[e];if(typeof t!="function")throw new Error("hashes."+e+" not set");return t},_n=(e,t,n)=>ve(Zn(e)(t,n),Ee,"digest"),zn=async(e,t,n)=>ve(await Zn(e)(t,n),Ee,"digest");var _t=e=>{if(e instanceof Ne)return e;throw new TypeError("Point expected")},zt="bad point: not on curve",Xn=e=>H(H(e*e)*e+BigInt(7)),$n=e=>tt(e,BigInt(0),Ie),Ye=e=>tt(e,BigInt(1),Ie),Yn=e=>tt(e,BigInt(1),et),kt=e=>!(e&BigInt(1)),Oo=e=>Uint8Array.of(kt(e)?2:3),Qn=e=>{let t=Xn(Ye(e)),n=BigInt(1);for(let o=t,s=(Ie+BigInt(1))/BigInt(4);s>BigInt(0);s>>=BigInt(1))s&BigInt(1)&&(n=n*o%Ie),o=o*o%Ie;if(H(n*n)!==t)throw new Error("sqrt invalid");return new Ne(e,kt(n)?n:H(-n),BigInt(1))},Oe=class Oe{constructor(t,n,o){le(this,"X");le(this,"Y");le(this,"Z");this.X=$n(t),this.Y=Ye(n),this.Z=$n(o),Ft(this)}static CURVE(){return Ro}static fromAffine(t){let{x:n,y:o}=t;return n===BigInt(0)&&o===BigInt(0)?Qe:new Oe(n,o,BigInt(1))}static fromBytes(t){ve(t);let n=t.length,o=t[0],s=wt(t,1,33);try{if(n===33&&(o===2||o===3)){let i=Qn(s);return o===3?i.negate():i}if(n===65&&o===4)return new Oe(s,wt(t,33,65),BigInt(1)).assertValidity()}catch{throw new Error(zt)}throw new Error(zt)}static fromHex(t){return Oe.fromBytes(Gn(t))}get x(){return this.toAffine().x}get y(){return this.toAffine().y}equals(t){let{X:n,Y:o,Z:s}=this,{X:i,Y:r,Z:a}=_t(t);return H(n*a)===H(i*s)&&H(o*a)===H(r*s)}is0(){return this.Z===BigInt(0)}negate(){return new Oe(this.X,H(-this.Y),this.Z)}double(){return this.add(this)}add(t){let{X:n,Y:o,Z:s}=this,{X:i,Y:r,Z:a}=_t(t),y=BigInt(0),c=BigInt(7),m=BigInt(0),d=BigInt(0),g=BigInt(0),S=H(c*BigInt(3)),P=H(n*i),b=H(o*r),p=H(s*a),u=H(n+o),f=H(i+r);u=H(u*f),f=H(P+b),u=H(u-f),f=H(n+s);let v=H(i+a);return f=H(f*v),v=H(P+p),f=H(f-v),v=H(o+s),m=H(r+a),v=H(v*m),m=H(b+p),v=H(v-m),g=H(y*f),m=H(S*p),g=H(m+g),m=H(b-g),g=H(b+g),d=H(m*g),b=H(P+P),b=H(b+P),p=H(y*p),f=H(S*f),b=H(b+p),p=H(P-p),p=H(y*p),f=H(f+p),P=H(b*f),d=H(d+P),P=H(v*f),m=H(u*m),m=H(m-P),P=H(u*b),g=H(v*g),g=H(g+P),new Oe(m,d,g)}subtract(t){return this.add(_t(t).negate())}multiply(t,n=!0){if(!n&&t===BigInt(0))return Qe;if(Yn(t),t===BigInt(1))return this;if(this.equals(Ke))return jo(t).p;let o=Qe,s=Ke,i=this;for(let r=0;n?r<256:t>BigInt(0);r++)t&BigInt(1)?o=o.add(i):n&&(s=s.add(i)),i=i.double(),t>>=BigInt(1);return o}multiplyUnsafe(t){return this.multiply(t,!1)}toAffine(){let{X:t,Y:n,Z:o}=this;if(o===BigInt(0))return{x:BigInt(0),y:BigInt(0)};if(o===BigInt(1))return{x:t,y:n};let s=Bo(o,Ie);if(H(o*s)!==BigInt(1))throw new Error("inverse invalid");return{x:H(t*s),y:H(n*s)}}assertValidity(){let{x:t,y:n}=this.toAffine();if(Ye(t),Ye(n),H(n*n)!==Xn(t))throw new Error(zt);return this}toBytes(t=!0){let{x:n,y:o}=this.assertValidity().toAffine(),s=Ce(n);return t?Ze(Oo(o),s):Ze(Uint8Array.of(4),s,Ce(o))}toHex(t){return Jn(this.toBytes(t))}};le(Oe,"BASE"),le(Oe,"ZERO");var Ne=Oe,Ke=new Ne(Wn,Kn,BigInt(1)),Qe=new Ne(BigInt(0),BigInt(1),BigInt(0));Ne.BASE=Ke;Ne.ZERO=Qe;var Co=(e,t,n)=>Ke.multiply(t,!1).add(e.multiply(n,!1)).assertValidity(),Ve=e=>Do("0x"+(Jn(e)||"0")),wt=(e,t,n)=>Ve(e.subarray(t,n)),Ce=e=>Gn(Vn(tt(e,BigInt(0),BigInt(2)**BigInt(256)),Ee*2)),Lo=e=>{let t=Ve(ve(e,Ee,"secret key"));return tt(t,BigInt(1),et,"invalid secret key: outside of range")};var jn="SHA-256",xo={hmacSha256Async:async(e,t)=>{let n=Nn(),o=await n.importKey("raw",e,{name:"HMAC",hash:jn},!1,["sign"]);return new Uint8Array(await n.sign("HMAC",o,t))},hmacSha256:void 0,sha256Async:async e=>new Uint8Array(await Nn().digest(jn,e)),sha256:void 0};var Uo=e=>{if(e=e===void 0?qt(48):e,ve(e),e.length<48||e.length>1024)throw new RangeError("expected 48-1024b");let t=H(Ve(e),et-BigInt(1));return Ce(t+BigInt(1))},Ho=e=>t=>{let n=Uo(t);return{secretKey:n,publicKey:e(n)}};var er=e=>Uint8Array.from("BIP0340/"+e,t=>t.charCodeAt(0)),$t=(e,...t)=>{let n=_n("sha256",er(e));return _n("sha256",Ze(n,n,...t))},jt=(e,...t)=>zn("sha256Async",er(e)).then(n=>zn("sha256Async",Ze(n,n,...t))),Wt=e=>{let t=Lo(e),n=Ke.multiply(t),{x:o,y:s}=n.assertValidity().toAffine(),i=kt(s)?t:vt(-t),r=Ce(o);return{d:i,px:r}},Kt=e=>vt(Ve(e)),tr=(...e)=>Kt($t("challenge",...e)),nr=async(...e)=>Kt(await jt("challenge",...e)),rr=e=>Wt(e).px,Io=Ho(rr),or=(e,t,n)=>{let o=Mo(e,"message"),{px:s,d:i}=Wt(t);return{m:o,px:s,d:i,a:ve(n,Ee)}},sr=e=>{let t=Kt(e);if(t===BigInt(0))throw new Error("sign failed: k is zero");let{px:n,d:o}=Wt(Ce(t));return{rx:n,k:o}},ir=(e,t,n,o)=>Ze(t,Ce(vt(e+n*o))),ar="invalid signature produced",No=(e,t,n=qt(Ee))=>{let{m:o,px:s,d:i,a:r}=or(e,t,n),a=Ce(i^Ve($t("aux",r))),{rx:y,k:c}=sr($t("nonce",a,s,o)),m=ir(c,y,tr(y,s,o),i);if(!fr(m,o,s))throw new Error(ar);return m},_o=async(e,t,n=qt(Ee))=>{let{m:o,px:s,d:i,a:r}=or(e,t,n),a=Ce(i^Ve(await jt("aux",r))),{rx:y,k:c}=sr(await jt("nonce",a,s,o)),m=ir(c,y,await nr(y,s,o),i);if(!await lr(m,o,s))throw new Error(ar);return m},zo=(e,t)=>e instanceof Promise?e.then(t):t(e),cr=(e,t,n,o)=>{let s=ve(e,64,"signature"),i=ve(t,void 0,"message"),r=ve(n,Ee,"publicKey"),a,y,c,m;try{let d=Ve(r);a=Qn(d),y=Ye(wt(s,0,Ee)),c=Yn(wt(s,Ee,64)),m=Ze(Ce(y),r,i)}catch{return!1}return zo(o(m),d=>{try{let{x:g,y:S}=Co(a,c,vt(-d)).toAffine();return!(!kt(S)||g!==y)}catch{return!1}})},fr=(e,t,n)=>cr(e,t,n,tr),lr=async(e,t,n)=>cr(e,t,n,nr),Vt=Ft({keygen:Io,getPublicKey:rr,sign:No,verify:fr,signAsync:_o,verifyAsync:lr}),$o=()=>{let e=[],t=Ke,n=t;for(let o=0;o<33;o++){n=t,e.push(n);for(let s=1;s<128;s++)n=n.add(t),e.push(n);t=n.double()}return e},Fn,qn=(e,t)=>{let n=t.negate();return e?n:t},jo=e=>{let t=Fn||(Fn=$o()),n=Qe,o=Ke;for(let s=0;s<33;s++){let i=Number(e&BigInt(255));e>>=BigInt(8),i>128&&(i-=256,e+=BigInt(1));let r=s*128,a=r+Math.abs(i)-1,y=s%2!==0,c=i<0;i===0?o=o.add(qn(y,t[r])):n=n.add(qn(c,t[a]))}if(e!==BigInt(0))throw new Error("invalid wnaf");return{p:n,f:o}};var{floor:Jt,min:Fo,sin:qo}=Math,Y="Trystero",st=(e,t)=>Array(e).fill(void 0).map(t),Wo="0123456789AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz",pe=e=>st(e,()=>{var t;return(t=Wo[Jt(Math.random()*62)])!=null?t:""}).join(""),re=pe(20),de=Promise.all.bind(Promise),Gt=typeof window!="undefined",{entries:Me,fromEntries:Zt,keys:ue,values:ke}=Object,Q=()=>{},Pt="candidate",$=e=>(e!==null&&clearTimeout(e),null),_=e=>new Error(`${Y}: ${e}`),Le=(e,t)=>e instanceof Error&&e.message?e.message:typeof e=="string"&&e?e:oe(e!=null?e:t),Pe=(e,t)=>e instanceof Error?e:_(Le(e,t)),Ko=new TextEncoder,Vo=new TextDecoder,ge=e=>Ko.encode(e),be=e=>Vo.decode(e),xe=e=>e.reduce((t,n)=>t+n.toString(16).padStart(2,"0"),""),_e=(...e)=>e.join("@"),Jo=(e,t)=>{let n=[...e],o=()=>{let i=qo(t++)*1e4;return i-Jt(i)},s=n.length;for(;s;){let i=Jt(o()*s--),r=n[s];n[s]=n[i],n[i]=r}return n},Xt=(e,t,n,o=!1)=>{var s,i,r;return((s=e.relayConfig)==null?void 0:s.urls)||(o?Jo(t,bt(e.appId)):t).slice(0,(r=(i=e.relayConfig)==null?void 0:i.redundancy)!=null?r:n)},oe=JSON.stringify,De=e=>{try{return JSON.parse(e)}catch{throw _(`failed to parse JSON: ${e}`)}},bt=(e,t=Number.MAX_SAFE_INTEGER)=>e.split("").reduce((n,o)=>n+o.charCodeAt(0),0)%t,ur=3333,Go=6e4,nt={},rt=null,ot=null,Yt=()=>{rt||(rt=new Promise(e=>{ot=e}).finally(()=>{ot=null,rt=null}))},Qt=()=>{ot==null||ot()},en=(e,t,n)=>{let o={},s=!1,i=!1,r,a=Q;o.isClosed=!1,o.ready=new Promise(c=>a=c);let y=()=>{if(o.isClosed)return;r=void 0,i=!1;let c=new WebSocket(e);c.onclose=()=>{var d;if(o.isClosed||i)return;if(i=!0,rt){rt.then(y);return}let m=(d=nt[e])!=null?d:nt[e]=ur;r=setTimeout(y,Math.random()*m),nt[e]=Fo(m*2,Go)},c.onmessage=m=>t(String(m.data)),o.socket=c,o.url=c.url,c.onopen=()=>{let m=s;s=!0,a(o),nt[e]=ur,m&&(n==null||n())},o.send=m=>{c.readyState===1&&c.send(m)}};return o.close=()=>{o.isClosed=!0,r!==void 0&&(clearTimeout(r),r=void 0),o.socket.close()},y(),o};var tn=e=>{let t={},n=new WeakMap,o=r=>{let a=n.get(r);if(!a)throw _("relay bookkeeping missing registration for relay client");return a},s=()=>{let r={},a=y=>{var c;return(c=r[y])!=null?c:r[y]={}};return{forKey:a,forRelay:y=>a(o(y))}},i=(r,a)=>(t[r]=a,n.set(a,r),a);return{register:(r,a)=>{let y=t[r];return y||i(r,a())},keyOf:o,scoped:s,getSockets:()=>Zt(Me(t).flatMap(([r,a])=>{let y=e(a);return y?[[r,y]]:[]}))}},dr=()=>{if(Gt){let e=new AbortController;return addEventListener("online",Qt,{signal:e.signal}),addEventListener("offline",Yt,{signal:e.signal}),()=>e.abort()}return Q};var rn="AES-GCM",nn={},Zo=e=>btoa(String.fromCharCode.apply(null,Array.from(new Uint8Array(e)))),Xo=e=>{let t=atob(e);return new Uint8Array(t.length).map((n,o)=>t.charCodeAt(o)).buffer},Je=async(e,t)=>new Uint8Array(await crypto.subtle.digest(e,ge(t))),Ue=async e=>{var t;return(t=nn[e])!=null?t:nn[e]=Array.from(await Je("SHA-1",e)).map(n=>n.toString(36)).join("")},mr=async(e,t,n)=>crypto.subtle.importKey("raw",await crypto.subtle.digest({name:"SHA-256"},ge(`${e}:${t}:${n}`)),{name:rn},!1,["encrypt","decrypt"]),yr=async(e,t)=>xe(await Je("SHA-256",`${Y}:${e}:${t}`)),pr="$",gr=",",hr=async(e,t)=>{let n=crypto.getRandomValues(new Uint8Array(16));return n.join(gr)+pr+Zo(await crypto.subtle.encrypt({name:rn,iv:n},await e,ge(t)))},wr=async(e,t)=>{var s;let[n,o]=t.split(pr);return be(await crypto.subtle.decrypt({name:rn,iv:new Uint8Array((s=n==null?void 0:n.split(gr).map(Number))!=null?s:[])},await e,Xo(o!=null?o:"")))};var Yo=18e4,vr=class{constructor(e){le(this,"makeOffer");le(this,"leased",new Map);le(this,"destroyed",!1);this.makeOffer=e}claimLeased(e){let t=this.leased.get(e);t&&($(t),this.leased.delete(e))}reclaimLeased(e){this.leased.has(e)&&(this.claimLeased(e),e.destroy())}checkout(e,t,n){let o=async(s=!1)=>{if(this.destroyed)throw _("room left while preparing offer");let i=this.makeOffer();try{let r=await n(i);if(this.destroyed)throw _("room left while preparing offer");return t?(this.leased.set(i,setTimeout(()=>{this.leased.delete(i),i.destroy()},Yo)),{peer:i,offer:r,claim:()=>this.claimLeased(i),reclaim:()=>this.reclaimLeased(i)}):{peer:i,offer:r}}catch(r){if(i.destroy(),!s&&!this.destroyed)return o(!0);throw r}};return de(st(e,()=>o()))}getOffers(e,t){return this.checkout(e,!0,t)}destroy(){this.destroyed=!0,this.leased.forEach((e,t)=>{$(e),t.destroy()}),this.leased.clear()}};var on=_("incorrect password for overlapping room"),kr=(e,t,n)=>{let o=r=>Je("SHA-256",`${r}:${e}:${t}:${n}`).then(xe),s=async(r,a,y)=>{if(!e)return;if(y){let m=pe(36);await r({__trystero_pw:"challenge",c:m});let{data:d}=await a();if(!d||typeof d!="object"||d.__trystero_pw!=="response"||typeof d.h!="string")throw on;let g=await o(m);if(d.h!==g)throw on;return}let{data:c}=await a();if(!c||typeof c!="object"||c.__trystero_pw!=="challenge"||typeof c.c!="string")throw on;await r({__trystero_pw:"response",h:await o(c.c)})};return{run:s,compose:r=>e||r?async(a,y,c,m)=>{await s(y,c,m),await(r==null?void 0:r(a,y,c,m))}:void 0}},Qo=e=>{let t=Le(e,"unknown error");return t.startsWith("handshake ")?t:`handshake failed: ${t}`},Pr=({onPeerHandshake:e,onHandshakeError:t,handshakeTimeoutMs:n,sendHandshakeData:o,sendHandshakeReady:s,onActivate:i,onFailure:r})=>{let a={},y=(d,g)=>{let S=a[d];!S||g&&S.peer!==g||S.isActive||!S.didLocalHandshakePass||!S.didReceiveRemoteReady||(S.isActive=!0,S.handshakeTimer=$(S.handshakeTimer),i(d,S.peer))},c=(d,g,S)=>{let P=a[d];if(!P||P.peer!==g)return;let b=Qo(S);t==null||t(d,b),r(d,g,_(b))},m=(d,g)=>{let S=a[d];!S||S.peer!==g||S.isActive||(S.didLocalHandshakePass=!0,s("",d).catch(P=>c(d,g,_(`failed sending handshake readiness: ${Le(P,"unknown send failure")}`))),y(d,g))};return{addPeer:(d,g)=>{a[d]={peer:g,isActive:!1,didLocalHandshakePass:!1,didReceiveRemoteReady:!1,handshakeTimer:null,pendingHandshakePayloads:[],handshakeWaiters:[]}},clearPeer:(d,g)=>{let S=a[d];S&&(S.handshakeTimer=$(S.handshakeTimer),S.pendingHandshakePayloads.length=0,S.handshakeWaiters.splice(0).forEach(P=>P.reject(g)),delete a[d])},canReceiveFromPeer:(d,g)=>{let S=a[d];return!!(S&&(S.isActive||g))},start:(d,g)=>{let S=a[d];if(!S||S.peer!==g)return;S.handshakeTimer=setTimeout(()=>c(d,g,_(`handshake timed out after ${n}ms`)),n);let P=async(u,f)=>{await o(u,d,f)},b=()=>new Promise((u,f)=>{let v=a[d];if(!v||v.peer!==g){f(_("peer disconnected during handshake"));return}let E=v.pendingHandshakePayloads.shift();if(E){u(E);return}v.handshakeWaiters.push({resolve:u,reject:D=>f(D)})}),p=re<d;Promise.resolve(e==null?void 0:e(d,P,b,p)).then(()=>m(d,g)).catch(u=>c(d,g,Pe(u,"handshake failed")))},receiveHandshakeData:(d,g,S)=>{let P=a[g];if(!P||P.isActive)return;let b=S===void 0?{data:d}:{data:d,metadata:S},p=P.handshakeWaiters.shift();if(p){p.resolve(b);return}if(P.pendingHandshakePayloads.length>=16){c(g,P.peer,_("too many pending handshake messages"));return}P.pendingHandshakePayloads.push(b)},receiveHandshakeReady:d=>{let g=a[d];!g||g.isActive||(g.didReceiveRemoteReady=!0,y(d))}}};var es=15e3,ts=150,ns=5e3,br="icecandidate",Sr="icegatheringstatechange",rs="iceconnectionstatechange",it="offer",os="answer",ss=/out of range/i,is=128,as=8192,Tr=e=>e.replace(/ (\S+\.local) (\d+) typ host/g," 127.0.0.1 $2 typ host"),sn=(e,{trickleIce:t,rtcConfig:n,rtcPolyfill:o,turnConfig:s,_test_only_mdnsHostFallbackToLoopback:i})=>{var Se;let r=new(o!=null?o:RTCPeerConnection)({iceServers:Ar.concat(s!=null?s:[]),...n}),a={},y=new Set,c=[],m=[],d=null,g=t!==!1,S=[],P=[],b,p=!1,u=!1,f=null,v=null,E=!1,D=k=>{b&&(b(k),b=void 0)},U=()=>v=$(v),W=()=>{var k;E||(E=!0,y.forEach(B=>B()),d=$(d),m.length=0,U(),(k=a.close)==null||k.call(a))},F=k=>{k.type===it&&(D(k),!a.signal&&!r.remoteDescription)||(a.signal?a.signal(k):c.push(k))},G=k=>{let B=a.signal;a.signal=L=>{B==null||B(L),k(L)},c.length>0&&c.splice(0).forEach(L=>{var N;return(N=a.signal)==null?void 0:N.call(a,L)})},Z=k=>i?Tr(k):k,ee=k=>{if(!i||typeof k.candidate!="string")return k;let B=Tr(k.candidate);return B===k.candidate?k:{...k,candidate:B}},se=k=>{var B,L,N,J;return{type:(L=(B=k.localDescription)==null?void 0:B.type)!=null?L:it,sdp:Z((J=(N=k.localDescription)==null?void 0:N.sdp)!=null?J:"")}},l=()=>{var B,L,N;let k=(B=r.remoteDescription)==null?void 0:B.sdp;return k&&(N=(L=k.match(/a=ice-ufrag:([^\s]+)/))==null?void 0:L[1])!=null?N:null},T=()=>{var k,B,L;return((L=(B=(k=r.remoteDescription)==null?void 0:k.sdp)==null?void 0:B.match(/^m=/gm))!=null?L:[]).length},M=k=>{if(!r.remoteDescription)return!1;let B=T();if(typeof k.sdpMLineIndex=="number"&&B>0&&k.sdpMLineIndex>=B)return!1;let L=l();return!(L&&k.usernameFragment&&k.usernameFragment!==L)},O=async k=>{try{return await r.addIceCandidate(k),!0}catch(B){if(B instanceof Error&&ss.test(B.message)&&typeof k.sdpMLineIndex=="number")return!1;throw B}},C=k=>{S.length>=is&&S.shift(),S.push(k)},R=async()=>{if(!r.remoteDescription||S.length===0)return;let k=l(),B=S.splice(0),L=[];for(let N of B)if(!(k&&N.usernameFragment&&N.usernameFragment!==k)){if(!M(N)){L.push(N);continue}await O(N)||L.push(N)}L.forEach(C)},h=async k=>{if(M(k)){await O(k)||C(k);return}C(k)},w=k=>{k.binaryType="arraybuffer",k.bufferedAmountLowThreshold=65535;let B=()=>{console.warn(`${Y}: invalid or excessive data before handler registration; disconnecting peer`),k.close(),r.close(),W()};k.onmessage=L=>{let N=L.data;if(!E){if(!(N instanceof ArrayBuffer)&&!ArrayBuffer.isView(N)||N.byteLength>16515){B();return}if(a.data)a.data(N);else{if(m.length>=64){B();return}d||(d=setTimeout(B,1e4)),m.push(N)}}},k.onopen=()=>{var L;return(L=a.connect)==null?void 0:L.call(a)},k.onclose=W,k.onerror=({error:L})=>{var N;E||(L==null?void 0:L.errorDetail)==="sctp-failure"&&(L.sctpCauseCode===12||/^User-Initiated Abort\b/.test(L.message))||(N=a.error)==null||N.call(a,Pe(L,"data channel error"))}},A=(Se=n==null?void 0:n.iceServers)!=null?Se:Ar.concat(s!=null?s:[]),x=k=>A.some(({urls:B})=>(Array.isArray(B)?B:[B]).some(L=>k.test(L))),z=x(/^turns?:/i),I=!z&&x(/^stuns?:/i),q=z?/\btyp relay\b/:I?/\btyp (?:srflx|relay|prflx)\b/:/\btyp (?:host|srflx|relay|prflx)\b/,ae=async k=>(await new Promise(B=>{let L=null,N=null,J=()=>{$(L),$(N),k.removeEventListener(Sr,ye),k.removeEventListener(br,qe),y.delete(J),B()},me=(Be="")=>{var ne,Te;let K=`${(Te=(ne=k.localDescription)==null?void 0:ne.sdp)!=null?Te:""}
+${Be}`;q.test(K)&&($(N),N=setTimeout(J,ts))},ye=()=>{k.iceGatheringState==="complete"||E?J():me()},qe=Be=>{let{candidate:K}=Be;K?me(K.candidate):J()};y.add(J),L=setTimeout(J,es),k.addEventListener(Sr,ye),k.addEventListener(br,qe),ye()}),se(k)),te=async()=>{let k=g?se(r):await ae(r);return E||F(k),k};e?(f=r.createDataChannel("data"),w(f)):r.ondatachannel=({channel:k})=>{f=k,w(k)};let fe=async(k=!1)=>{var B,L;if(r.connectionState==="closed"||!k&&(p||r.signalingState!=="stable")){r.connectionState==="closed"&&D();return}try{return p=!0,k&&(r.remoteDescription&&r.signalingState!=="stable"&&r.signalingState!=="closed"&&((B=r.localDescription)==null?void 0:B.type)===it&&await r.setLocalDescription({type:"rollback"}),typeof r.restartIce=="function"&&r.restartIce()),await r.setLocalDescription(k?await r.createOffer({iceRestart:!0}):void 0),await te()}catch(N){k||D(),(L=a.error)==null||L.call(a,Pe(N,"failed to create local offer"))}finally{p=!1}};r.onnegotiationneeded=async()=>fe(!1),r.onicecandidate=({candidate:k})=>{if(!g||!k)return;let B=ee(typeof k.toJSON=="function"?k.toJSON():{candidate:k.candidate,sdpMid:k.sdpMid,sdpMLineIndex:k.sdpMLineIndex,usernameFragment:k.usernameFragment});F({type:Pt,sdp:JSON.stringify(B)})};let we=()=>{if(r.connectionState==="failed"||r.connectionState==="closed"||r.iceConnectionState==="failed"||r.iceConnectionState==="closed"){W();return}if(r.connectionState==="connected"||r.connectionState==="connecting"||r.iceConnectionState==="connected"||r.iceConnectionState==="completed"||r.iceConnectionState==="checking"){U();return}if(r.connectionState==="disconnected"||r.iceConnectionState==="disconnected"){v||(v=setTimeout(()=>{v=null,(r.connectionState==="disconnected"||r.iceConnectionState==="disconnected")&&W()},ns));return}};r.onconnectionstatechange=we,r.addEventListener(rs,we),r.ontrack=k=>{var L,N;let B=k.streams[0];if(B){if(!a.track&&!a.stream){P.push({track:k.track,stream:B});return}(L=a.track)==null||L.call(a,k.track,B),(N=a.stream)==null||N.call(a,B)}};let ce=e?new Promise(k=>{b=k}):Promise.resolve();return e&&queueMicrotask(()=>{var k;!p&&r.signalingState==="stable"&&!r.localDescription&&r.connectionState!=="closed"&&((k=r.onnegotiationneeded)==null||k.call(r,new Event("negotiationneeded")))}),{connection:r,get channel(){return f},get isDead(){return r.connectionState==="closed"},getOffer:async(k=!1)=>{var B;if(e)return k?fe(!0):b?ce:((B=r.localDescription)==null?void 0:B.type)===it?g?se(r):ae(r):ce},async signal(k){var B,L,N;if(k.type==="candidate"){if(k.sdp.length>as)return;try{let J=JSON.parse(k.sdp);J&&typeof J=="object"&&await h(ee(J))}catch(J){(B=a.error)==null||B.call(a,Pe(J,"failed to parse remote candidate"))}return}if(!((f==null?void 0:f.readyState)==="open"&&!((L=k.sdp)!=null&&L.includes("a=rtpmap"))))try{let J={...k,sdp:Z(k.sdp)};if(k.type===it){let me=p||r.signalingState!=="stable"&&!u;return me&&e?void 0:(me&&r.signalingState!=="stable"?await de([r.setLocalDescription({type:"rollback"}),r.setRemoteDescription(J)]):await r.setRemoteDescription(J),await R(),await r.setLocalDescription(),await te())}if(k.type===os){u=!0;try{await r.setRemoteDescription(J),await R()}finally{u=!1}}}catch(J){(N=a.error)==null||N.call(a,Pe(J,"failed to apply remote signal"))}},sendData:k=>f==null?void 0:f.send(k),destroy:()=>{U(),D(),f==null||f.close(),r.close(),p=!1,u=!1,W()},setHandlers:k=>{let{signal:B,...L}=k;Object.assign(a,L),a.data&&m.length>0&&(d=$(d),m.splice(0).forEach(N=>{var J;return(J=a.data)==null?void 0:J.call(a,N)})),B&&G(B),(a.track||a.stream)&&P.length>0&&P.splice(0).forEach(({track:N,stream:J})=>{var me,ye;(me=a.track)==null||me.call(a,N,J),(ye=a.stream)==null||ye.call(a,J)})},addStream:k=>k.getTracks().forEach(B=>r.addTrack(B,k)),removeStream:k=>r.getSenders().filter(B=>B.track&&k.getTracks().includes(B.track)).forEach(B=>r.removeTrack(B)),addTrack:(k,B)=>r.addTrack(k,B),removeTrack:k=>{let B=r.getSenders().find(L=>L.track===k);B&&r.removeTrack(B)},replaceTrack:(k,B)=>{let L=r.getSenders().find(N=>N.track===k);if(L)return L.replaceTrack(B)}}},Ar=[...st(3,(e,t)=>`stun:stun${t||""}.l.google.com:19302`),"stun:stun.cloudflare.com:3478"].map(e=>({urls:e}));var cs=1024,fs=64,ls=128,us=8,ds=new Uint8Array,ms=(e,t)=>{let n;try{n=e()}catch{return t(!1)}return typeof n=="boolean"?t(n):Promise.resolve(n).then(o=>t(o===!0),()=>t(!1))},Rr=(e,t,n)=>t===2?n?e.slice():e:t===1?De(be(e)):be(e),Mr=(e,t,n,o)=>{try{e.progress(t,n,o)}catch(s){console.error(`${Y} progress handler error:`,s)}},Er=(e,t,n,o)=>{var s;Mr(e,1,n,o);try{(s=e.receiver)==null||s.call(e,t,n,o)}catch(i){console.error(`${Y} action handler error:`,i)}},Dr=({fail:e,accept:t,refuse:n,maxReceiveBytes:o,chunkSize:s})=>{let i=new Map,r=new Map,a=new Set,y=new Map,c=0,m=0,d=0,g=!1,S=!1,P=l=>l.phase!=="released",b=l=>{var T;return Math.min(o,(T=l==null?void 0:l.maxPayloadBytes)!=null?T:o)},p=(l,T,M,O)=>{var C,R;M==null||M.reject(T),(R=(C=i.get(l.type))==null?void 0:C.reject)==null||R.call(C,l.peerId,l.metadata,T),O!==void 0&&n(l.peerId,O,T)},u=l=>{for(let T of Array.from(a))T.peerId===l&&(a.delete(T),a.add(T))},f=l=>{var M,O;if(!P(l))return;l.phase="released",(M=l.removeAbortListener)==null||M.call(l),l.timer=$(l.timer);let T=r.get(l.peerId);if(l.kind==="inline"){let C=T.inline.get(l.key);C.splice(C.indexOf(l),1),C.length||T.inline.delete(l.key),l.data=ds}else T.bulk.delete(l.id),a.delete(l),l.data=null,l.transfer==="receiving"&&(d-=l.size,T.active===l&&(T.active=null,u(l.peerId)),S=!0);T.count--,c--,T.count||r.delete(l.peerId),(O=l.controller)==null||O.abort()},v=(l,T)=>{P(l)&&(f(l),p(l,T,l.scope,l.kind==="bulk"?l.id:void 0))},E=(l,T)=>{var R,h;if(l.phase!=="pending")return l.phase==="ready";if(l.size>b(T))return v(l,"payload exceeds receiver size limit"),!1;let M=l.scope?l.scope.receive:T.receive;if(!M)return T.receiver?(l.phase="ready",!0):!1;if(m>=ls||((R=y.get(l.peerId))!=null?R:0)>=us)return v(l,"too many pending receive decisions"),!1;l.phase="deciding";let O=new AbortController;l.controller=O,m++,y.set(l.peerId,((h=y.get(l.peerId))!=null?h:0)+1);let C=ms(()=>M({byteLength:l.size,peerId:l.peerId,signal:O.signal,...l.metadata===void 0?{}:{metadata:l.metadata}}),w=>{m--;let A=y.get(l.peerId)-1;return A?y.set(l.peerId,A):y.delete(l.peerId),P(l)?(w?l.phase="ready":v(l,"payload rejected by receiver"),w):!1});return typeof C=="boolean"?C:(C.then(()=>G()),!1)},D=(l,T,M)=>{let O;try{O=Rr(M,l.format,l.kind==="inline")}catch{f(l),e(l.peerId,"invalid action payload");return}f(l),Er(T,O,l.peerId,l.metadata)},U=l=>{let T=i.get(l.type);P(l)&&T&&E(l,T)&&T.receiver&&D(l,T,l.data)},W=l=>{let T=i.get(l.type);if(!P(l)||!T||!E(l,T)||!T.receiver)return;if(l.transfer==="receiving"){l.offset===l.size&&D(l,T,l.data);return}let M=r.get(l.peerId);!M.active&&d+l.size<=o&&(M.active=l,l.transfer="receiving",d+=l.size,l.lastSeen=Date.now(),a.delete(l),t(l.peerId,l.id))},F=(l,T)=>{var O;let M=(O=r.get(l))==null?void 0:O.inline.get(T);for(;M!=null&&M[0];){let C=M[0];if(U(C),P(C))break}},G=()=>{if(g){S=!0;return}g=!0;try{do{S=!1;for(let l of a)W(l);for(let[l,T]of r){for(let M of T.bulk.values())M.offset===M.size&&W(M);for(let M of T.inline.keys())F(l,M)}}while(S)}finally{g=!1}},Z=l=>{var O,C;let T=r.get(l.peerId);if(c>=cs||((O=T==null?void 0:T.count)!=null?O:0)>=fs)return p(l,"too many pending transfers",l.scope,l.kind==="bulk"?l.id:void 0),!1;if(T||(T={bulk:new Map,inline:new Map,active:null,count:0},r.set(l.peerId,T)),T.count++,c++,l.kind==="inline"){let R=(C=T.inline.get(l.key))!=null?C:[];R.push(l),T.inline.set(l.key,R)}else T.bulk.set(l.id,l),a.add(l);let M=()=>{let R=12e4-(Date.now()-l.lastSeen);R>0?l.timer=setTimeout(M,R):(v(l,"action transfer timed out"),G())};if(l.timer=setTimeout(M,12e4),l.scope){let{signal:R}=l.scope,h=()=>{v(l,"receive cancelled"),G()};if(R.addEventListener("abort",h,{once:!0}),l.removeAbortListener=()=>R.removeEventListener("abort",h),R.aborted)return h(),!1}return!0},ee=(l,T)=>{var C;let M=i.get(l.type),O=(C=M==null?void 0:M.receiveScope)==null?void 0:C.call(M,l.peerId,l.metadata);return O===null||O!=null&&O.signal.aborted?(T!==void 0&&n(l.peerId,T,"unexpected response"),null):l.size>b(M)?(p(l,"payload exceeds receiver size limit",O,T),null):{action:M,scope:O}},se=(l,T)=>({...l,...T?{scope:T}:{},phase:"pending",controller:null,lastSeen:Date.now(),timer:null});return{register:(l,T={})=>{let M={...T,receiver:null,receive:null,reject:null,progress:Q};return i.set(l,M),{onMessage:O=>{M.receiver=O,G()},onReceive:O=>{M.receive=O,G()},onReject:O=>{M.reject=O},onProgress:O=>{M.progress=O}}},receiveInline:(l,T)=>{var w;let M=ee(l);if(!M)return;let{action:O,scope:C}=M,R=C?`${l.type}\0${C.key}`:l.type;if(O!=null&&O.receiver&&!(C?C.receive:O.receive)&&!((w=r.get(l.peerId))!=null&&w.inline.has(R))){let A;try{A=Rr(T,l.format,!0)}catch{e(l.peerId,"invalid action payload");return}Er(O,A,l.peerId,l.metadata);return}let h={...se(l,C),kind:"inline",key:R,data:T};Z(h)&&F(l.peerId,R)},receiveOffer:(l,T)=>{var C;if((C=r.get(l.peerId))!=null&&C.bulk.has(T)){e(l.peerId,"duplicate action offer");return}let M=ee(l,T);if(!M)return;let O={...se(l,M.scope),kind:"bulk",id:T,transfer:"waiting",offset:0,data:null};Z(O)&&G()},receiveChunk:(l,T,M,O)=>{var w,A;let C=r.get(l),R=C==null?void 0:C.bulk.get(T);if(!R)return;if(R.transfer!=="receiving"||M!==R.offset||!O.length||O.length!==Math.min(s,R.size-R.offset)){e(l,"invalid action chunk offset or length");return}try{(w=R.data)!=null||(R.data=new Uint8Array(R.size))}catch{v(R,"unable to allocate receive buffer"),G();return}R.data.set(O,R.offset),R.offset+=O.length;let h=Date.now();R.lastSeen=h;for(let x of a)x.phase==="ready"&&((A=i.get(x.type))!=null&&A.receiver)&&(x.lastSeen=h);R.offset===R.size?(W(R),P(R)&&(C==null?void 0:C.active)===R&&(C.active=null,u(l)),G()):Mr(i.get(R.type),R.offset/R.size,l,R.metadata)},cancel:(l,T)=>{var O,C;let M=(O=r.get(l))==null?void 0:O.bulk.get(T);M&&(f(M),(C=M.scope)==null||C.reject("response cancelled by sender")),G()},clearPeer:l=>{let T=r.get(l);if(T){for(let M of T.bulk.values())f(M);for(let M of T.inline.values()){let O=[...M];for(let C of O)f(C)}}G()}}};var un=2,Tt=0,At=1,Br=2,an=3,cn=4,Rt=5,fn=36,Or=48,ze=6,ct=14,ln=16384-ct,ys=256*1024**2,Cr=1024**2,Lr="bufferedamountlow",xr="close",Ur="error",ps=1e4,He=(e,t)=>{let n=_(t);return n.kind=e,n.name=e==="aborted"?"AbortError":n.name,n},Et=e=>{if(e!=null&&e.aborted)throw He("aborted","operation aborted")},Hr=(e,t,n=ze)=>{let o=new Uint8Array(n);return o[0]=un,o[1]=e,new DataView(o.buffer).setUint32(2,t),o},Xe=He,gs=(e,t,n=ps)=>e.readyState!=="open"||e.bufferedAmount<=e.bufferedAmountLowThreshold?Promise.resolve(e.readyState==="open"):new Promise(o=>{let s=!1,i=null,r=c=>{s||(s=!0,e.removeEventListener(Lr,a),e.removeEventListener(xr,y),e.removeEventListener(Ur,y),t==null||t.removeEventListener("abort",y),$(i),o(c))},a=()=>r(!0),y=()=>r(!1);if(e.addEventListener(Lr,a),e.addEventListener(xr,y),e.addEventListener(Ur,y),t==null||t.addEventListener("abort",y,{once:!0}),i=setTimeout(()=>r(!1),n),e.readyState!=="open"||t!=null&&t.aborted){r(!1);return}e.bufferedAmount<=e.bufferedAmountLowThreshold&&r(!0)}),Nr=({getPeer:e,getPeerIds:t,canReceiveFromPeer:n,onPeerError:o,throwIfAborted:s=Et,maxReceiveBytes:i=ys})=>{if(!Number.isSafeInteger(i)||i<=0)throw _("maxReceiveBytes must be a positive safe integer");let r=new Map,a=new Map,y=new WeakSet,c=0,m=Dr({fail:(p,u)=>g(p,u),accept:(p,u)=>S(p,u,an),refuse:(p,u,f)=>S(p,u,cn,f),maxReceiveBytes:i,chunkSize:ln}),d=p=>{var u,f;for(let v of(f=(u=a.get(p))==null?void 0:u.values())!=null?f:[])v.fail(Xe("disconnected","peer disconnected"));a.delete(p),m.clearPeer(p)},g=(p,u)=>{let f=e(p,!0);f&&!y.has(f)&&(y.add(f),console.warn(`${Y}: ${u}; disconnecting peer ${p}`),o(p,_(u)))},S=(p,u,f,v="")=>{var W,F;let E=e(p,!0);if(!E)return;let D=ge(v).subarray(0,200),U=Hr(f,u,ze+D.length);U.set(D,ze);try{if(((F=(W=E.channel)==null?void 0:W.bufferedAmount)!=null?F:0)>Cr)throw _("control send buffer is full");E.sendData(U)}catch{g(p,"unable to send action control")}};return{makeInternalAction:(p,u={})=>{let f={sendToPending:!!u.sendToPending,receiveWhilePending:!!u.receiveWhilePending,...u.maxPayloadBytes===void 0?{}:{maxPayloadBytes:u.maxPayloadBytes},...u.receiveScope?{receiveScope:u.receiveScope}:{}},v=r.get(p);if(v){if(v.options.sendToPending!==f.sendToPending||v.options.receiveWhilePending!==f.receiveWhilePending||v.options.receiveScope!==f.receiveScope||v.options.maxPayloadBytes!==f.maxPayloadBytes)throw _(`action type "${p}" cannot be redefined`);return v.action}let E=ge(p);if(!p||p.includes("\0")||E.length>32)throw _("action type must contain 1\u201332 UTF-8 bytes and no null characters");let D={options:f,action:{...m.register(p,f),send:async(U,W,F,G,Z)=>{if(s(Z),U===void 0)throw _("action data cannot be undefined");let ee=U instanceof Blob,se=ee||U instanceof ArrayBuffer||ArrayBuffer.isView(U),l=se?2:typeof U=="string"?0:1,T=ee?U:U instanceof ArrayBuffer?new Uint8Array(U):ArrayBuffer.isView(U)?new Uint8Array(U.buffer,U.byteOffset,U.byteLength):ge(l===0?U:oe(U)),M=T instanceof Blob?T.size:T.byteLength,O=F===void 0?new Uint8Array:ge(oe(F));if(O.length>16336)throw _("action metadata is too large");let C=fn+O.length+M<=16384;!C&&se&&!(T instanceof Blob)&&(T=T.slice());let R=C?0:c++>>>0,h=C?fn:Or,w=new Uint8Array(h+O.length+(C?M:0));w[0]=un,w[1]=(C?Tt:At)|l<<4,w.set(E,2);let A=new DataView(w.buffer);A.setUint16(34,O.length),C||(A.setUint32(36,R),A.setFloat64(40,M)),w.set(O,h),C&&w.set(T instanceof Blob?new Uint8Array(await T.arrayBuffer()):T,h+O.length);let x=W?Array.isArray(W)?W:[W]:t(f.sendToPending);await de([...new Set(x)].map(async z=>{var qe,Be;let I=e(z,f.sendToPending);if(!I){console.warn(`${Y}: no peer with id ${z} found`);return}let q=null,ae=()=>{var K;if(q)throw q;if(s(Z),e(z,f.sendToPending)!==I||((K=I.channel)==null?void 0:K.readyState)==="closed")throw Xe("disconnected","peer disconnected")},te=async K=>{ae();let ne=I.channel;if(ne&&(ne.readyState!=="open"||ne.bufferedAmount>ne.bufferedAmountLowThreshold)){if(!await gs(ne,Z))throw s(Z),Xe("disconnected","data channel stopped draining");ae()}try{I.sendData(K)}catch{throw Xe("disconnected","peer disconnected")}};if(C){await te(w),G==null||G(1,z,F);return}let fe=!1,we=!1,ce=Date.now(),Se,k,B=new Promise((K,ne)=>{Se=K,k=ne});B.catch(Q);let L=(qe=a.get(z))!=null?qe:new Map;if(L.has(R))throw _("action transmission id is still in use");a.set(z,L);let N=null,J={accept:()=>!N||q?!1:(N=$(N),Se(),!0),fail:(K,ne=!1)=>{ne&&(we=!0),q=K,k(K)},touch:()=>{N&&(ce=Date.now())}};L.set(R,J);let me=()=>{let K=12e4-(Date.now()-ce);K>0?N=setTimeout(me,K):J.fail(Xe("timeout","action offer timed out"))};N=setTimeout(me,12e4);let ye=()=>{try{s(Z)}catch(K){J.fail(K)}};Z==null||Z.addEventListener("abort",ye,{once:!0});try{await te(w),fe=!0,await B;for(let K=0;K<M;K+=ln){ae();let ne=Math.min(ln,M-K),Te=Hr(Br,R,ct+ne);new DataView(Te.buffer).setFloat64(ze,K),Te.set(T instanceof Blob?new Uint8Array(await T.slice(K,K+ne).arrayBuffer()):T.subarray(K,K+ne),ct),await te(Te);for(let ht of L.values())ht.touch();G==null||G((K+ne)/M,z,F)}ae()}catch(K){throw fe&&!we&&e(z,!0)===I&&(!I.channel||I.channel.readyState==="open"&&((Be=I.channel.bufferedAmount)!=null?Be:0)<=Cr)&&S(z,R,Rt),K}finally{N=$(N),Z==null||Z.removeEventListener("abort",ye),L.delete(R),!L.size&&a.get(z)===L&&a.delete(z)}}))}}};return r.set(p,D),D.action},handleData:(p,u)=>{var M,O,C;if(u.byteLength<2||u.byteLength>16384){g(p,"invalid action frame");return}let f=new Uint8Array(u);if(f[0]!==un){g(p,"incompatible action protocol version");return}let v=f[1]&15,E=f[1]>>>4,D=new DataView(f.buffer,f.byteOffset,f.byteLength);if(v>Rt||E>2||v>At&&E!==0){g(p,"invalid action frame");return}if(v>=Br){if(f.length<ze||(v===an||v===Rt)&&f.length!==ze||v===cn&&f.length>206){g(p,"invalid action control");return}let R=D.getUint32(2);if(v===an){let h=a.get(p);if((M=h==null?void 0:h.get(R))!=null&&M.accept())for(let w of h.values())w.touch();return}if(v===cn){(C=(O=a.get(p))==null?void 0:O.get(R))==null||C.fail(Xe("rejected",be(f.subarray(ze))),!0);return}v===Rt?m.cancel(p,R):m.receiveChunk(p,R,f.length>=ct?D.getFloat64(ze):NaN,f.subarray(ct));return}let U=v===Tt?fn:Or;if(f.length<U){g(p,"invalid action header");return}let W=be(f.subarray(2,34)).replaceAll("\0",""),F=r.get(W);if(!n(p,!!(F!=null&&F.options.receiveWhilePending)))return;let G=D.getUint16(34),Z=U+G,ee=v===Tt?f.length-Z:D.getFloat64(40),se=v===At?D.getUint32(36):0;if(!W||Z>f.length||!Number.isSafeInteger(ee)||ee<0||v===At&&(ee===0||Z!==f.length)){g(p,"invalid action proposal");return}let l;try{G&&(l=De(be(f.subarray(U,Z))))}catch{g(p,"invalid action metadata");return}let T={peerId:p,type:W,format:E,size:ee,...l===void 0?{}:{metadata:l}};v===Tt?m.receiveInline(T,f.subarray(Z)):m.receiveOffer(T,se)},clearPeer:d}};var _r=e=>e&&typeof e=="object"&&!Array.isArray(e)&&typeof e.r=="string"?e:null,Mt=e=>{let t=_r(e);return t?{r:t.r,...Object.hasOwn(t,"m")?{m:t.m}:{}}:null},dn=e=>{let t=_r(e);return t?{r:t.r,...typeof t.e=="string"?{e:t.e}:{}}:null},ft=(e,t)=>t===void 0?e:{...e,metadata:t},zr=({getPeer:e,getPeerIds:t,canReceiveFromPeer:n,onPeerError:o,maxReceiveBytes:s})=>{let i=Object.create(null),r={},a=new Map,y=Nr({getPeer:e,getPeerIds:t,canReceiveFromPeer:n,onPeerError:o,...s===void 0?{}:{maxReceiveBytes:s}}),c=y.makeInternalAction,m=y.handleData,d=p=>{let u=r[p];u&&($(u.timer),u.signal&&u.abortHandler&&u.signal.removeEventListener("abort",u.abortHandler),delete r[p],u.controller.abort())},g=(p,u)=>{Me(r).forEach(([f,v])=>{v.peerId===p&&(d(f),v.reject(u))})},S=(p,u)=>{y.clearPeer(p);let f=a.get(p);f&&(a.delete(p),f.forEach(v=>v.abort())),g(p,He("disconnected",Le(u,"peer disconnected")))},P=c("@_response",{receiveScope:(p,u)=>{let f=dn(u),v=f&&r[f.r];if(!f||!v||v.peerId!==p)return null;let E=f.e===void 0?v.getReceive():null;return{key:f.r,signal:v.controller.signal,receive:E?D=>E({byteLength:D.byteLength,peerId:D.peerId,kind:"response",signal:D.signal}):null,reject:D=>{r[f.r]===v&&(d(f.r),v.reject(He("rejected",D)))}}}});return P.onProgress((p,u,f)=>{var D;let v=dn(f),E=v&&r[v.r];E&&E.peerId===u&&(v==null?void 0:v.e)===void 0&&((D=E.getReceiveProgress())==null||D(p,{peerId:u}))}),P.onMessage((p,u,f)=>{let v=dn(f);if(!v)return;let E=r[v.r];if(!(!E||E.peerId!==u)){if(d(v.r),v.e!==void 0){E.reject(He("rejected",v.e));return}E.resolve(p)}}),{makeAction:(p,u)=>{var l,T,M,O,C;if(u&&"onRequest"in u&&u.kind!=="request")throw _('request actions must use kind: "request"');let f=(l=u==null?void 0:u.kind)!=null?l:"message",v=c(p),E=i[p];if(E){if(E.kind!==f)throw _(`action type "${p}" cannot be redefined`);return E.action}let D={kind:f,action:null,onReceive:(T=u==null?void 0:u.onReceive)!=null?T:null,onReceiveProgress:(M=u==null?void 0:u.onReceiveProgress)!=null?M:null},U=(R,h)=>R?(w,A)=>R(w,ft({peerId:A},h)):void 0,W=(R,h,w)=>{var x;let A=D.kind==="request"?Mt(w):null;(x=D.onReceiveProgress)==null||x.call(D,R,ft({peerId:h},A?A.m:w))},F=R=>{D.onReceive=R,v.onReceive(R?h=>{let w=f==="request"?Mt(h.metadata):null;return R(ft({byteLength:h.byteLength,peerId:h.peerId,signal:h.signal,kind:f},w?w.m:h.metadata))}:null)};if(F(D.onReceive),v.onProgress(W),f==="message"){let R=(O=u==null?void 0:u.onMessage)!=null?O:null,h=(A,x,z)=>{let I=R;Promise.resolve().then(()=>I(A,ft({peerId:x},z))).catch(q=>console.error(`${Y} action handler error:`,q))},w={send:async(A,x={})=>{await v.send(A,x.target,x.metadata,U(x.onProgress,x.metadata),x.signal)},get onMessage(){return R},set onMessage(A){R=A,v.onMessage(A?h:null)},get onReceive(){return D.onReceive},set onReceive(A){F(A)},get onReceiveProgress(){return D.onReceiveProgress},set onReceiveProgress(A){D.onReceiveProgress=A}};return D.action=w,i[p]=D,v.onMessage(R?h:null),w}v.onReject((R,h,w)=>{let A=Mt(h);A&&P.send(null,R,{r:A.r,e:w}).catch(Q)});let G=(C=u==null?void 0:u.onRequest)!=null?C:null,Z=(R,h,w)=>{let A=Mt(w);if(!A)return;let x=G,z=new AbortController,I=a.get(h);I||(I=new Set,a.set(h,I)),I.add(z),Promise.resolve().then(async()=>{let q=await x(R,{...ft({peerId:h},A.m),signal:z.signal});if(q===void 0)throw _("request handler returned undefined");return q}).then(q=>P.send(q,h,{r:A.r}),q=>P.send(null,h,{r:A.r,e:Le(q,"request failed").slice(0,512)})).catch(Q).finally(()=>{let q=a.get(h);q==null||q.delete(z),q&&!q.size&&a.delete(h),z.abort()})},ee=async(R,h)=>{let{target:w,metadata:A,onProgress:x,signal:z,timeoutMs:I}=h;if(Et(z),!e(w,!1))throw He("disconnected",`no active peer with id ${w}`);let q=pe(20),ae=new AbortController,te=new Promise((fe,we)=>{let ce={controller:ae,getReceive:()=>D.onReceive,getReceiveProgress:()=>D.onReceiveProgress,peerId:w,resolve:fe,reject:we,timer:null,...z===void 0?{}:{signal:z}},Se=()=>{d(q),we(He("aborted","operation aborted"))};z&&(ce.abortHandler=Se,z.addEventListener("abort",Se,{once:!0})),r[q]=ce,I!==void 0&&(ce.timer=setTimeout(()=>{d(q),ce.reject(He("timeout","request timed out"))},I))});try{let fe=v.send(R,w,A===void 0?{r:q}:{r:q,m:A},U(x,A),ae.signal);return await Promise.race([te,fe.then(()=>te)])}finally{d(q)}},se={request:ee,requestMany:async(R,h)=>{let{targets:w,onResult:A,...x}=h;return Et(x.signal),await de(w.map(async z=>{try{let I={peerId:z,status:"fulfilled",value:await ee(R,{...x,target:z})};return A==null||A(I),I}catch(I){let q=Pe(I,"request failed");if(q.kind==="aborted"||!q.kind)throw q;let ae=q.kind==="timeout"?{peerId:z,status:"timeout"}:q.kind==="disconnected"?{peerId:z,status:"disconnected"}:{peerId:z,status:"rejected",error:q};return A==null||A(ae),ae}}))},get onRequest(){return G},set onRequest(R){G=R,v.onMessage(R?Z:null)},get onReceive(){return D.onReceive},set onReceive(R){F(R)},get onReceiveProgress(){return D.onReceiveProgress},set onReceiveProgress(R){D.onReceiveProgress=R}};return D.action=se,i[p]=D,v.onMessage(G?Z:null),se},makeInternalAction:c,handleData:m,clearPeer:S}};var $r=e=>e&&typeof e=="object"&&!Array.isArray(e)&&typeof e.k=="string"?{key:e.k,...typeof e.s=="string"?{streamId:e.s}:{},...typeof e.t=="string"?{trackId:e.t}:{},...Object.hasOwn(e,"m")?{metadata:e.m}:{}}:null,jr=e=>t=>{let n=e.get(t);return n||(n=pe(20),e.set(t,n)),n},Dt=()=>{let e=new WeakMap,t=new WeakMap,n=new Map,o=new Map,s=new Map,i=new Map,r=new WeakMap,a=new WeakMap;return{getStreamKey:jr(e),getTrackKey:jr(t),rememberRemoteStream:(y,c,m)=>{var g;let d=r.get(c);d!==void 0&&n.get(d)===c&&n.delete(d),r.set(c,y),n.set(y,c),m&&o.set(m,c),(g=c.getTracks)==null||g.call(c).forEach(S=>{typeof S.id=="string"&&i.set(S.id,{track:S,stream:c})})},getRemoteStream:(y,c)=>{var m;return(m=n.get(y))!=null?m:c?o.get(c):void 0},rememberRemoteTrack:(y,c,m,d,g)=>{var b;let S={track:c,stream:m},P=a.get(c);P!==void 0&&((b=s.get(P))==null?void 0:b.track)===c&&s.delete(P),a.set(c,y),s.set(y,S),d&&i.set(d,S),g&&o.set(g,m)},getRemoteTrack:(y,c)=>{var m;return(m=s.get(y))!=null?m:c?i.get(c):void 0},hasRemoteMedia:()=>n.size>0||s.size>0,clearRemote:()=>{n.clear(),o.clear(),s.clear(),i.clear()}}},Fr=({iterate:e,isActive:t,getSharedMediaPeer:n,onPeerError:o})=>{let s={},i={},r={},a=Dt(),y=b=>{var p,u,f;return(f=(p=n(b))==null?void 0:p.__trysteroMedia)!=null?f:(u=r[b])!=null?u:r[b]=Dt()},c=(b,p,u,f)=>{var E;let v=(E=b[p])!=null?E:b[p]=[];if(v.length>=64){console.warn(`${Y}: too many pending ${f} metadata messages`),o(p,_("too many pending media metadata messages"));return}v.push(u)},m=(b,p,u)=>{if(!(b!=null&&b.length))return;let f=p?b.findIndex(v=>{let E=u(v);return!E||E===p}):0;return f>=0?b.splice(f,1)[0]:void 0},d=(b,p,u,f)=>{var v;t(b)&&(y(b).rememberRemoteStream(p,u,typeof u.id=="string"?u.id:void 0),(v=P.onPeerStream)==null||v.call(P,u,b,f))},g=(b,p,u,f,v)=>{var E;t(b)&&(y(b).rememberRemoteTrack(p,u,f,typeof u.id=="string"?u.id:void 0,typeof f.id=="string"?f.id:void 0),(E=P.onPeerTrack)==null||E.call(P,u,f,b,v))},S=(b,p,u,f,v,E={})=>{let D={k:p,...E,...u===void 0?{}:{m:u}};return e(b,async(U,W)=>{await f(D,U),await v(W)})},P={addStream:(b,p,u)=>S(p.target,a.getStreamKey(b),p.metadata,u,f=>f.addStream(b),{s:b.id}),removeStream:(b,p)=>{e(p,(u,f)=>f.removeStream(b))},addTrack:(b,p,u,f)=>S(u.target,a.getTrackKey(b),u.metadata,f,v=>v.addTrack(b,p),{s:p.id,t:b.id}),removeTrack:(b,p)=>{e(p,(u,f)=>f.removeTrack(b))},replaceTrack:(b,p,u,f)=>S(u.target,a.getTrackKey(p),u.metadata,f,v=>v.replaceTrack(b,p),{t:b.id}),receiveStreamMeta:(b,p)=>{if(!t(p))return;let u=$r(b);if(!u)return;let f=y(p).getRemoteStream(u.key,u.streamId);if(f!=null&&f.getTracks().length){d(p,u.key,f,u.metadata);return}c(s,p,u,"stream")},receiveTrackMeta:(b,p)=>{if(!t(p))return;let u=$r(b);if(!u)return;let f=y(p).getRemoteTrack(u.key,u.trackId);if(f&&f.track.readyState!=="ended"&&(!f.stream.getTracks||f.stream.getTracks().includes(f.track))){g(p,u.key,f.track,f.stream,u.metadata);return}c(i,p,u,"track")},receiveRemoteStream:(b,p)=>{if(!t(b))return;let u=m(s[b],typeof p.id=="string"?p.id:void 0,f=>f.streamId);u&&d(b,u.key,p,u.metadata)},receiveRemoteTrack:(b,p,u)=>{if(!t(b))return;let f=i[b],v=typeof p.id=="string"?p.id:void 0,E=typeof u.id=="string"?u.id:void 0,D=f&&v?f.findIndex(W=>W.trackId===v):-1,U=D>=0?f==null?void 0:f.splice(D,1)[0]:m(f,E,W=>W.streamId);U&&g(b,U.key,p,u,U.metadata)},clearPeer:b=>{delete s[b],delete i[b],delete r[b]},onPeerStream:null,onPeerTrack:null};return P};var qr="beforeunload",hs=1e4,$e=e=>"@_"+e,lt=new Set,Wr=()=>lt.forEach(e=>e()),ws=e=>(lt.add(e),lt.size===1&&addEventListener(qr,Wr),()=>{lt.delete(e),lt.size||removeEventListener(qr,Wr)}),Kr=(e,t,n,{onPeerHandshake:o,onHandshakeError:s,handshakeTimeoutMs:i=hs,maxReceiveBytes:r,isPassive:a=!1,onBeforeLeave:y}={})=>{let c={},m={},d={},g={onPeerJoin:null,onPeerLeave:null},S=Q,P=null,b=(h,w)=>(h?Array.isArray(h)?h:[h]:ue(m)).flatMap(A=>{let x=m[A];return x?[Promise.resolve(w(A,x))]:(console.warn(`${Y}: no peer with id ${A} found`),[])}),p=(h,w,A)=>{let x=c[h];!x||w&&x!==w||(M.send("",h).catch(Q),F(h,x,A))},u=(h,w)=>p(h,void 0,w),f=Fr({onPeerError:u,iterate:(h,w)=>b(h,(A,x)=>w(A,x)),isActive:h=>!!m[h],getSharedMediaPeer:h=>{var w;return(w=c[h])!=null?w:null}}),v=zr({onPeerError:u,...r===void 0?{}:{maxReceiveBytes:r},getPeer:(h,w)=>(w?c:m)[h],getPeerIds:h=>ue(h?c:m),canReceiveFromPeer:(h,w)=>R.canReceiveFromPeer(h,w)}),E=v.makeInternalAction,D=v.handleData,U=v.makeAction,W=(h,w=_("peer disconnected"))=>{var x;let A=Pe(w,"peer disconnected");R.clearPeer(h,A),delete c[h],delete m[h],v.clearPeer(h,A),(x=d[h])==null||x.splice(0).forEach(z=>z.reject(A)),delete d[h],f.clearPeer(h)},F=(h,w,A)=>{var I;let x=c[h];if(!x||w&&x!==w)return;let z=!!m[h];W(h,A),x.destroy(),z&&((I=g.onPeerLeave)==null||I.call(g,h)),t(h)},G=()=>P!=null?P:P=(async()=>{y==null||y();let h=new AbortController;M.send("",void 0,void 0,void 0,h.signal).catch(Q),await new Promise(w=>setTimeout(w,99)),h.abort();try{Me(c).forEach(([w,A])=>{A.destroy(),W(w,_("room left"))})}finally{try{S()}finally{n()}}})(),Z=E($e("ping")),ee=E($e("pong")),se=E($e("signal")),l=E($e("stream"),{maxPayloadBytes:65536}),T=E($e("track"),{maxPayloadBytes:65536}),M=E($e("leave"),{sendToPending:!0,receiveWhilePending:!0}),O=E($e("hsdata"),{sendToPending:!0,receiveWhilePending:!0,maxPayloadBytes:65536}),C=E($e("hsready"),{sendToPending:!0,receiveWhilePending:!0}),R=Pr({...o===void 0?{}:{onPeerHandshake:o},...s===void 0?{}:{onHandshakeError:s},handshakeTimeoutMs:i,sendHandshakeData:O.send,sendHandshakeReady:C.send,onActivate:(h,w)=>{var A;m[h]=w,w.setHandlers({signal:x=>{m[h]===w&&se.send(x,h).catch(Q)}}),(A=g.onPeerJoin)==null||A.call(g,h)},onFailure:(h,w,A)=>p(h,w,A)});return Z.onMessage((h,w)=>{ee.send("",w).catch(Q)}),ee.onMessage((h,w)=>{var x;let A=d[w];(x=A==null?void 0:A.shift())==null||x.resolve(),A&&!A.length&&delete d[w]}),se.onMessage((h,w)=>{var A;(A=m[w])==null||A.signal(h)}),l.onMessage((h,w)=>f.receiveStreamMeta(h,w)),T.onMessage((h,w)=>f.receiveTrackMeta(h,w)),M.onMessage((h,w)=>F(w,void 0,_("peer left room"))),O.onMessage((h,w,A)=>R.receiveHandshakeData(h,w,A)),C.onMessage((h,w)=>R.receiveHandshakeReady(w)),e((h,w)=>{let A=c[w];if(A){if(A===h)return;A.destroy(),W(w,_("peer replaced"))}c[w]=h,R.addPeer(w,h),h.setHandlers({data:x=>{c[w]===h&&D(w,x)},stream:x=>f.receiveRemoteStream(w,x),track:(x,z)=>f.receiveRemoteTrack(w,x,z),close:()=>F(w,h,_("peer disconnected")),error:x=>{console.error(`${Y} peer error:`,x),F(w,h,x)}}),R.start(w,h)}),Gt&&(S=ws(()=>G().catch(Q))),{makeAction:U,leave:G,ping:async h=>{if(!m[h])throw _(`no active peer with id ${h}`);let w=Date.now();return await new Promise((A,x)=>{var ae;let z=(ae=d[h])!=null?ae:d[h]=[],I=()=>{let te=d[h];if(!te)return;let fe=te.indexOf(q);fe>-1&&te.splice(fe,1),te.length||delete d[h]},q={resolve:()=>{I(),A()},reject:te=>{I(),x(te)}};z.push(q),Z.send("",h).catch(te=>q.reject(Pe(te,"peer disconnected")))}),Date.now()-w},isPassive:()=>a,getPeers:()=>Zt(Me(m).map(([h,w])=>[h,w.connection])),addStream:(h,w={})=>f.addStream(h,w,l.send),removeStream:(h,w={})=>{f.removeStream(h,w.target)},addTrack:(h,w,A={})=>f.addTrack(h,w,A,T.send),removeTrack:(h,w={})=>{f.removeTrack(h,w.target)},replaceTrack:(h,w,A={})=>f.replaceTrack(h,w,A,T.send),get onPeerJoin(){return g.onPeerJoin},set onPeerJoin(h){g.onPeerJoin=h,h&&ue(m).forEach(w=>h(w))},get onPeerLeave(){return g.onPeerLeave},set onPeerLeave(h){g.onPeerLeave=h},get onPeerStream(){return f.onPeerStream},set onPeerStream(h){f.onPeerStream=h},get onPeerTrack(){return f.onPeerTrack},set onPeerTrack(h){f.onPeerTrack=h}}};var Gr=1,Zr=2,Vr=(e,t)=>{let n=ge(e),o=new Uint8Array(3+n.byteLength+t.byteLength);return o[0]=Gr,o[1]=n.byteLength>>>8&255,o[2]=n.byteLength&255,o.set(n,3),o.set(t,3+n.byteLength),o},vs=(e,t)=>{let n=ge(e),o=new Uint8Array(4+n.byteLength);return o[0]=Zr,o[1]=Number(t),o[2]=n.byteLength>>>8&255,o[3]=n.byteLength&255,o.set(n,4),o},Jr=(e,t)=>{var s,i;if(e.byteLength<t+2)return null;let n=((s=e[t])!=null?s:0)<<8|((i=e[t+1])!=null?i:0),o=t+2+n;return n<=0||n>128||e.byteLength<o?null:{roomToken:be(e.subarray(t+2,o)),headerSize:o}},ks=e=>{let t=new Uint8Array(e);if(t.byteLength<3||t.byteLength>16515)return null;if(t[0]===Gr){let n=Jr(t,1);return n?{type:"room",roomToken:n.roomToken,payload:t.subarray(n.headerSize).slice().buffer}:null}if(t[0]===Zr){let n=Jr(t,2);return n?{type:"presence",roomToken:n.roomToken,isPresent:t[1]===1}:null}return null},Bt=e=>{let{connection:t,channel:n}=e;return e.isDead||t.connectionState==="closed"||t.connectionState==="failed"||t.iceConnectionState==="closed"||t.iceConnectionState==="failed"||(n==null?void 0:n.readyState)==="closing"||(n==null?void 0:n.readyState)==="closed"},Xr=e=>{if(Bt(e))return"stale";let{channel:t}=e;return!t||t.readyState!=="open"?"transient":"live"},Yr=class{constructor(){le(this,"rooms",new Map);le(this,"unclaimedDataTimers",new WeakMap);le(this,"pendingDataTimers",new WeakMap);le(this,"byApp",{})}registerRoom(e,t,n,o){var y;let s=(y=this.rooms.get(e))!=null?y:new Map;if(s.has(t))throw _("room membership already registered");let i={token:null,tokenPromise:n,...o};s.set(t,i),this.rooms.set(e,s);let r=()=>{var c;return((c=this.rooms.get(e))==null?void 0:c.get(t))===i},a=c=>{var m;if(i.token)for(let d of ke((m=this.byApp[e])!=null?m:{}))try{this.sendRoomPresence(d,i.token,c)}catch{}};return n.then(c=>{var m;if(r()){i.token=c;for(let d of ke((m=this.byApp[e])!=null?m:{}))d.remoteRoomTokens.has(c)&&this.attachRoom(e,t,i,d),this.discardUnboundData(d);r()&&i.active&&a(!0)}}),{connect:(c,m,d)=>{if(!r()){m.destroy();return}let g=this.reusable(e,c);g&&g.peer!==m&&m.destroy();let S=g!=null?g:this.register(e,c,m,d);if(this.attachRoom(e,t,i,S),!g)for(let P of s.values())P.active&&P.token&&this.sendRoomPresence(S,P.token,!0)},reuse:c=>{if(!r())return!1;let m=this.reusable(e,c);return m?(this.attachRoom(e,t,i,m),!0):!1},setActive:c=>{!r()||i.active===c||(i.active=c,a(c))},leave:()=>{var c,m,d;if(r()){s.delete(t),s.size||this.rooms.delete(e),a(!1);for(let g of ke((c=this.byApp[e])!=null?c:{})){let S=g.bindings[t];(d=S==null?void 0:(m=S.handlers).close)==null||d.call(m),S==null||S.detach(),this.discardUnboundData(g)}}}}}owns(e,t,n){var o,s;return((s=(o=this.byApp[e])==null?void 0:o[t])==null?void 0:s.peer)===n}reusable(e,t){var o;let n=(o=this.byApp[e])==null?void 0:o[t];if(n&&Bt(n.peer)){this.clear(e,t,{destroyPeer:!0});return}return n}attachRoom(e,t,n,o){var r;if(((r=this.rooms.get(e))==null?void 0:r.get(t))!==n||o.isClosing||this.get(e,o.peerId)!==o)return;let{proxy:s,isNew:i}=this.bind(t,n.tokenPromise,o,{onDetach:()=>n.onDetach(o.peerId,o.peer)});i&&n.onPeer(s,o.peerId,o.peer)}get(e,t){var n;return(n=this.byApp[e])==null?void 0:n[t]}sendRoomPresence(e,t,n){e.isClosing||Bt(e.peer)||e.peer.sendData(vs(t,n))}clear(e,t,{destroyPeer:n}){let o=this.byApp[e],s=o==null?void 0:o[t];if(!s||s.isClosing)return;s.idleTimer=$(s.idleTimer),this.clearDataTimers(s),s.isClosing=!0,n&&!s.peer.isDead&&s.peer.destroy();let i=ke(s.bindings);s.bindings={},s.bindingsByToken={},s.controlRoomId=null,delete o[t],i.forEach(r=>{var a,y;(y=(a=r.handlers).close)==null||y.call(a),r.pendingData.length=0,r.pendingSendData.length=0,r.pendingTracks.length=0}),s.media.clearRemote(),s.pendingDataByToken.clear(),s.remoteRoomTokens.clear(),ue(o).length===0&&delete this.byApp[e]}register(e,t,n,o){var a,y,c;let s=(a=this.byApp[e])==null?void 0:a[t];if(s){if(s.idleTimer=$(s.idleTimer),s.peer===n)return s;this.clear(e,t,{destroyPeer:!0})}let i={appId:e,peerId:t,peer:n,bindings:{},bindingsByToken:{},pendingDataByToken:new Map,remoteRoomTokens:new Set,idleTimer:null,controlRoomId:null,streamOwners:new Map,trackOwners:new Map,media:Dt(),idleMs:o,isClosing:!1};((c=(y=this.byApp)[e])!=null?c:y[e]={})[t]=i;let r=()=>{this.owns(e,t,n)&&this.clear(e,t,{destroyPeer:!0})};return n.setHandlers({data:m=>this.dispatchData(i,m),signal:m=>this.dispatchSignal(i,m),close:r,error:m=>{console.error(`${Y} peer error:`,m),r()},track:(m,d)=>this.dispatchTrack(i,m,d)}),i}bind(e,t,n,{onDetach:o}){var y;let s=n.bindings[e];if(s)return n.idleTimer=$(n.idleTimer),{proxy:s.proxy,isNew:!1};let i={roomId:e,roomToken:null,roomTokenPromise:t,handlers:{},pendingData:[],pendingSendData:[],pendingTracks:[],detach:Q,proxy:{}},r=()=>{var m;if(n.bindings[e]!==i)return;let c=ue(n.bindings).length===1&&(n.streamOwners.size>0||n.trackOwners.size>0||n.media.hasRemoteMedia());c||this.pruneRoomOwnership(n,e),delete n.bindings[e],i.roomToken&&n.bindingsByToken[i.roomToken]===i&&delete n.bindingsByToken[i.roomToken],n.controlRoomId===e&&(n.controlRoomId=(m=ue(n.bindings)[0])!=null?m:null),this.discardUnboundData(n),o(),c?this.clear(n.appId,n.peerId,{destroyPeer:!0}):this.scheduleIdleTimer(n)},a={get connection(){return n.peer.connection},get channel(){return n.peer.channel},get isDead(){return n.peer.isDead},getOffer:c=>n.peer.getOffer(c),signal:c=>n.peer.signal(c),sendData:c=>{if(!i.roomToken){i.pendingSendData.push(c);return}n.peer.sendData(Vr(i.roomToken,c))},destroy:()=>r(),setHandlers:c=>{Object.assign(i.handlers,c),this.flushBindingQueues(n,i)},addStream:c=>{var g;let m=(g=n.streamOwners.get(c))!=null?g:new Set,d=m.size===0;m.add(e),n.streamOwners.set(c,m),d&&n.peer.addStream(c)},removeStream:c=>this.releaseStreamOwner(n,c,e),addTrack:(c,m)=>{var S,P;let d=(S=n.trackOwners.get(c))!=null?S:{stream:m,rooms:new Set},g=d.rooms.size===0;return d.stream=m,d.rooms.add(e),n.trackOwners.set(c,d),g?n.peer.addTrack(c,m):(P=n.peer.connection.getSenders().find(b=>b.track===c))!=null?P:n.peer.addTrack(c,m)},removeTrack:c=>this.releaseTrackOwner(n,c,e),replaceTrack:async(c,m)=>{var g;let d=n.trackOwners.get(c);if(await n.peer.replaceTrack(c,m),d&&n.trackOwners.get(c)===d){n.trackOwners.delete(c);let S=(g=n.trackOwners.get(m))!=null?g:{stream:d.stream,rooms:new Set};d.rooms.forEach(P=>S.rooms.add(P)),n.trackOwners.set(m,S)}},__trysteroMedia:n.media};return i.proxy=a,i.detach=r,n.bindings[e]=i,(y=n.controlRoomId)!=null||(n.controlRoomId=e),n.idleTimer=$(n.idleTimer),t.then(c=>{if(n.isClosing||n.bindings[e]!==i)return;i.roomToken=c,n.bindingsByToken[c]=i;let m=n.pendingDataByToken.get(c);m!=null&&m.length&&(i.pendingData.push(...m),n.pendingDataByToken.delete(c));let d=i.pendingSendData.splice(0);Bt(n.peer)||d.forEach(g=>{try{n.peer.sendData(Vr(c,g))}catch{}}),this.flushBindingQueues(n,i),this.discardUnboundData(n)}),{proxy:a,isNew:!0}}releaseStreamOwner(e,t,n){let o=e.streamOwners.get(t);o&&(o.delete(n),o.size===0&&(e.streamOwners.delete(t),e.peer.removeStream(t)))}releaseTrackOwner(e,t,n){let o=e.trackOwners.get(t);o&&(o.rooms.delete(n),o.rooms.size===0&&(e.trackOwners.delete(t),e.peer.removeTrack(t)))}pruneRoomOwnership(e,t){e.streamOwners.forEach((n,o)=>this.releaseStreamOwner(e,o,t)),e.trackOwners.forEach((n,o)=>this.releaseTrackOwner(e,o,t))}scheduleIdleTimer(e){e.isClosing||ue(e.bindings).length>0||(e.idleTimer=$(e.idleTimer),e.idleTimer=setTimeout(()=>{var n;let t=(n=this.byApp[e.appId])==null?void 0:n[e.peerId];!t||ue(t.bindings).length>0||this.clear(e.appId,e.peerId,{destroyPeer:!0})},e.idleMs))}getSignalBinding(e){if(e.controlRoomId){let n=e.bindings[e.controlRoomId];if(n!=null&&n.handlers.signal)return n}let t=ke(e.bindings).find(n=>!!n.handlers.signal);return t?(e.controlRoomId=t.roomId,t):null}flushBindingQueues(e,t){let{handlers:n}=t;if(n.data&&t.pendingData.length>0){let o=t.pendingData.splice(0);this.syncDataTimers(e),o.forEach(s=>{var i;return(i=n.data)==null?void 0:i.call(n,s)})}else this.syncDataTimers(e);(n.track||n.stream)&&t.pendingTracks.length&&t.pendingTracks.splice(0).forEach(({track:o,stream:s})=>{var i,r;(i=n.track)==null||i.call(n,o,s),(r=n.stream)==null||r.call(n,s)})}unclaimedBufferedFrameCount(e){let t=0;for(let n of e.pendingDataByToken.values())t+=n.length;return t}boundBufferedFrameCount(e){let t=0;for(let n of ke(e.bindings))t+=n.pendingData.length;return t}bufferedFrameCount(e){return this.unclaimedBufferedFrameCount(e)+this.boundBufferedFrameCount(e)}clearDataTimers(e){$(this.unclaimedDataTimers.get(e)),this.unclaimedDataTimers.delete(e),$(this.pendingDataTimers.get(e)),this.pendingDataTimers.delete(e)}syncDataTimers(e){if(e.isClosing){this.clearDataTimers(e);return}this.unclaimedBufferedFrameCount(e)===0?($(this.unclaimedDataTimers.get(e)),this.unclaimedDataTimers.delete(e)):this.unclaimedDataTimers.has(e)||this.unclaimedDataTimers.set(e,setTimeout(()=>{this.unclaimedDataTimers.delete(e),e.pendingDataByToken.clear()},1e4)),this.boundBufferedFrameCount(e)===0?($(this.pendingDataTimers.get(e)),this.pendingDataTimers.delete(e)):this.pendingDataTimers.has(e)||this.pendingDataTimers.set(e,setTimeout(()=>{this.pendingDataTimers.delete(e),this.boundBufferedFrameCount(e)>0&&this.failData(e,"room data handler timed out")},1e4))}canBindRoomToken(e,t){var n,o;return ke(e.bindings).some(s=>!s.roomToken)||[...(o=(n=this.rooms.get(e.appId))==null?void 0:n.values())!=null?o:[]].some(s=>!s.token||s.token===t)}discardUnboundData(e){for(let t of e.pendingDataByToken.keys())this.canBindRoomToken(e,t)||e.pendingDataByToken.delete(t);this.syncDataTimers(e)}failData(e,t){console.warn(`${Y}: ${t}; disconnecting peer ${e.peerId}`),this.clear(e.appId,e.peerId,{destroyPeer:!0})}dispatchData(e,t){var s,i,r,a;if(e.isClosing)return;let n=ks(t);if(!n){this.failData(e,"invalid or incompatible room frame");return}if(n.type==="presence"){if(n.isPresent){if(!e.remoteRoomTokens.has(n.roomToken)&&e.remoteRoomTokens.size>=64){this.failData(e,"too many advertised rooms");return}e.remoteRoomTokens.add(n.roomToken);for(let[y,c]of(s=this.rooms.get(e.appId))!=null?s:[])c.token===n.roomToken&&this.attachRoom(e.appId,y,c,e)}else{e.remoteRoomTokens.delete(n.roomToken),e.pendingDataByToken.delete(n.roomToken);let y=e.bindingsByToken[n.roomToken];(r=y==null?void 0:(i=y.handlers).close)==null||r.call(i),y==null||y.detach(),this.syncDataTimers(e)}return}let o=e.bindingsByToken[n.roomToken];if(!o){if(!this.canBindRoomToken(e,n.roomToken)||this.bufferedFrameCount(e)>=64)return;let y=(a=e.pendingDataByToken.get(n.roomToken))!=null?a:[];y.push(n.payload),e.pendingDataByToken.set(n.roomToken,y),this.syncDataTimers(e);return}if(o.handlers.data)o.handlers.data(n.payload);else{if(this.bufferedFrameCount(e)>=64){this.failData(e,"too much data waiting for a room handler");return}o.pendingData.push(n.payload),this.syncDataTimers(e)}}dispatchSignal(e,t){var o,s;let n=this.getSignalBinding(e);n?(s=(o=n.handlers).signal)==null||s.call(o,t):t.type==="offer"&&this.clear(e.appId,e.peerId,{destroyPeer:!0})}dispatchTrack(e,t,n){ke(e.bindings).forEach(o=>{var s,i,r,a;if(o.handlers.track||o.handlers.stream){(i=(s=o.handlers).track)==null||i.call(s,t,n),(a=(r=o.handlers).stream)==null||a.call(r,n);return}o.pendingTracks.push({track:t,stream:n})})}};var Qr=23333,Ps=57333,bs=12,Ss=7533,Ts=23333,ut="offer-placeholder",As=["offer","answer","candidate"],eo=e=>{if(typeof e=="string")try{let t=De(e);return t&&typeof t=="object"&&!Array.isArray(t)?t:null}catch{return null}return e&&typeof e=="object"&&!Array.isArray(e)?e:null},je=(e,t)=>typeof e[t]=="string"&&e[t]?e[t]:void 0,to=e=>!!(e&&typeof e=="object"&&typeof e.signal=="function"&&typeof e.destroy=="function"&&typeof e.setHandlers=="function"),no=(e,t=!1)=>As.some(n=>n in e&&(typeof e[n]!="string"||e[n]===""))||"peer"in e&&(t||e.peer!==void 0&&!to(e.peer)),ro=e=>{let t=eo(e);if(!t||no(t,typeof e=="string"))return!1;let n=je(t,"peerId");return!!(n&&n!==re&&t.passive!==!0&&!je(t,"answer")&&!je(t,"candidate"))},Rs=(e,t,n,o,s,i)=>{e.toCipher(t).then(r=>{e.isLeaving()||!i()||o(n,oe(s(r.sdp)))})},Es=()=>({offerPeer:null,offerId:null,offerSdp:null,offerInitPromise:null,offerAnswered:!1,offerRelays:[],offerSignalRelays:[],offerSignalBacklog:[],offerRelayTimers:[],offerExpiryTimer:null,connectedPeer:null,connectedPeerUnhealthySinceMs:null,answeringExpiryTimer:null,answeringPeer:null,answerSent:!1,answerReplay:null,connectionErrorReported:!1}),Ms=e=>{var t,n,o;return[...(t=e.turnConfig)!=null?t:[],...(o=(n=e.rtcConfig)==null?void 0:n.iceServers)!=null?o:[]].some(({urls:s})=>(Array.isArray(s)?s:[s]).some(i=>/^turns?:/i.test(i)))},Ds=(e,t)=>`could not connect to peer ${e} after exchanging SDP; ${Ms(t)?"check that your TURN server URLs and credentials are reachable by both peers":"configure TURN servers with turnConfig or rtcConfig.iceServers"}`,Lt=(e,t,n)=>{var o;e.isLeaving()||t.connectedPeer||t.connectionErrorReported||(t.connectionErrorReported=!0,(o=e.onJoinError)==null||o.call(e,{error:Ds(n,e.config),appId:e.appId,peerId:n,roomId:e.roomId}))},mt=(e,t)=>{var n;return(n=e[t])!=null?n:e[t]=Es()},Ot=new WeakMap,xt=e=>{Ot.delete(e),e.answeringExpiryTimer=$(e.answeringExpiryTimer),e.answeringPeer=null,e.answerSent=!1,e.answerReplay=null},dt=(e,t)=>{e.answeringPeer===t&&(xt(e),e.connectedPeer!==t&&!t.isDead&&t.destroy())},oo=(e,t)=>{e.answeringPeer&&e.answeringPeer!==t&&!e.answeringPeer.isDead&&e.answeringPeer.destroy(),xt(e),e.connectedPeer=t,e.connectedPeerUnhealthySinceMs=null},pn=(e,t)=>{(e==null?void 0:e.connectedPeer)===t&&(e.connectedPeer=null,e.connectedPeerUnhealthySinceMs=null)},Ct=(e,t,n)=>{e.connectedPeer&&(e.connectedPeer.isDead||e.connectedPeer.destroy(),e.connectedPeer=null,e.connectedPeerUnhealthySinceMs=null)},gn=(e,t)=>{e.offerRelayTimers[t]=$(e.offerRelayTimers[t]),e.offerRelays[t]&&(e.offerRelays[t]=void 0)},mn=(e,t)=>{(e==null?void 0:e.offerRelays[t])===ut&&gn(e,t)},Fe=e=>{Ot.delete(e),e.offerExpiryTimer=$(e.offerExpiryTimer),e.offerInitPromise=null,e.offerRelays.forEach((t,n)=>gn(e,n)),e.offerRelays=[],e.offerSignalRelays=[],e.offerRelayTimers=[],e.offerSignalBacklog=[],e.offerPeer&&e.offerPeer!==e.connectedPeer&&(e.offerPeer.isDead||e.offerPeer.destroy()),e.offerPeer=null,e.offerId=null,e.offerSdp=null,e.offerAnswered=!1,e.connectionErrorReported=!1},Bs=(e,t,n,o)=>{$(t.answeringExpiryTimer),t.answeringExpiryTimer=setTimeout(()=>{let s=e.peerStates[n];!s||s.connectedPeer||s.answeringPeer!==o||(s.answerSent&&Lt(e,s,n),dt(s,o),e.checkDeactivate())},Ts)},yn=(e,t,n,o=Ps)=>{$(t.offerExpiryTimer);let s=t.offerId;t.offerExpiryTimer=setTimeout(()=>{let i=e.peerStates[n];!i||i.connectedPeer||i.offerId!==s||(i.offerAnswered&&Lt(e,i,n),Fe(i),e.checkDeactivate())},o)},so=(e,t,n,o,s)=>{let i=()=>{t.offerPeer===o&&!t.connectedPeer&&(t.offerAnswered&&Lt(e,t,n),Fe(t)),e.disconnectPeer(o,n),e.checkDeactivate()};o.setHandlers({connect:()=>e.connectPeer(o,n),...s?{signal:s}:{},close:i,error:i})},Os=(e,t,n)=>{if(t.offerPeer&&t.offerId&&t.offerSdp)return Promise.resolve({peer:t.offerPeer,offer:t.offerSdp,offerId:t.offerId});if(t.offerInitPromise)return t.offerInitPromise;let s=(async()=>{let i;try{i=(await e.offerManager.checkout(1,!1,e.encryptOffer))[0]}catch(y){if(e.isLeaving()||t.offerInitPromise!==s)return null;throw y}if(!i)throw _("failed to allocate offer peer");let{peer:r,offer:a}=i;return e.isLeaving()||t.offerInitPromise!==s?(r.destroy(),null):(t.offerPeer=r,t.offerId=pe(bs),t.offerSdp=a,t.offerAnswered=!1,t.connectionErrorReported=!1,t.offerSignalBacklog=[],so(e,t,n,r,y=>{t.offerPeer===r&&(t.offerSignalBacklog.push(y),t.offerSignalRelays.forEach(c=>c==null?void 0:c(y)))}),yn(e,t,n),{peer:r,offer:a,offerId:t.offerId})})().finally(()=>{t.offerInitPromise===s&&(t.offerInitPromise=null)});return t.offerInitPromise=s},io=async(e,t,n,o,s=0)=>{var c;let i=e.peerStates[n];if(!i||i.connectedPeer||i.answeringPeer||i.offerAnswered){mn(i,t);return}if(i.offerRelays[t]!==ut)return;let[r,a]=await de([Ue(_e(e.rootTopicPlaintext,n)),Os(e,i,n)]);if(!a){mn(i,t);return}if(e.isLeaving()){Fe(i);return}if(i.connectedPeer||i.answeringPeer||i.offerAnswered||i.offerRelays[t]!==ut){mn(i,t);return}i.offerRelayTimers[t]=$(i.offerRelayTimers[t]),i.offerRelays[t]=!0,i.offerRelayTimers[t]=setTimeout(()=>{if(s>=2||e.isLeaving()||i.connectedPeer||i.answeringPeer||i.offerAnswered||i.offerPeer!==a.peer||i.offerId!==a.offerId){Us(e,n,t);return}i.offerRelays[t]=ut,io(e,t,n,o,s+1)},s===0&&e.announceIntervals[t]===void 0?2e3:((c=e.announceIntervals[t])!=null?c:e.announceIntervalMs)*.9);let y=!1;i.offerSignalRelays[t]=m=>{y&&(e.isLeaving()||i.connectedPeer||i.offerPeer!==a.peer||i.offerId!==a.offerId||m.type!=="candidate"||Rs(e,m,r,o,d=>({peerId:re,offerId:a.offerId,candidate:d,...e.isPassive?{passive:!0}:{}}),()=>!i.connectedPeer&&i.offerPeer===a.peer&&i.offerId===a.offerId))},o(r,oe({peerId:re,offerId:a.offerId,offer:a.offer,...e.isPassive?{passive:!0}:{}})),y=!0,i.offerSignalBacklog.forEach(m=>{var d,g;return(g=(d=i.offerSignalRelays)[t])==null?void 0:g.call(d,m)})},Cs=async(e,t,n,o,s,i)=>{var p;let r=mt(e.peerStates,n);if(r.answeringPeer||r.offerAnswered){let u=r.answerReplay,f=u==null?void 0:u.lastSentAt[t];if(r.answeringPeer&&!r.answeringPeer.isDead&&u&&u.offer===o&&u.offerId===s&&(f===void 0||Date.now()-f>=1e3)){u.lastSentAt[t]=Date.now();let v=await Ue(_e(e.rootTopicPlaintext,n));if(!e.isLeaving()&&r.answerReplay===u&&!r.connectedPeer){let E=D=>i(v,D);u.relays[t]=E,u.messages.forEach(E)}}return}let a=!!(r.offerPeer||r.offerRelays.some(Boolean));if(a&&re<n)return;a&&Fe(r);let y=e.initPeer(!1,e.config),c={offer:o,offerId:s,messages:[],lastSentAt:[],relays:[]};c.lastSentAt[t]=Date.now(),r.answeringPeer=y,r.answerSent=!1,r.answerReplay=c,r.connectionErrorReported=!1,Bs(e,r,n,y);let m=()=>{r.answeringPeer===y&&!r.connectedPeer&&r.answerSent&&Lt(e,r,n),dt(r,y),e.disconnectPeer(y,n),e.checkDeactivate()};y.setHandlers({connect:()=>e.connectPeer(y,n),close:m,error:m});let d;try{d=await e.toPlain({type:"offer",sdp:o})}catch{dt(r,y),(p=e.onJoinError)==null||p.call(e,{error:"incorrect room password when decrypting offer",appId:e.appId,peerId:n,roomId:e.roomId});return}if(y.isDead){dt(r,y);return}let g=await Ue(_e(e.rootTopicPlaintext,n));if(e.isLeaving()||r.answerReplay!==c)return;c.relays[t]=u=>i(g,u);let S=[],P=!1,b=u=>{e.toCipher(u).then(f=>{if(e.isLeaving()||r.answeringPeer!==y||y.isDead)return;let v={peerId:re};u.type==="answer"?(r.answerSent=!0,v.answer=f.sdp):v.candidate=f.sdp,s&&(v.offerId=s),e.isPassive&&(v.passive=!0);let E=oe(v),D=Date.now();c.messages.push(E),c.relays.forEach((U,W)=>{U&&(c.lastSentAt[W]=D,U(E))}),u.type==="answer"&&!P&&(P=!0,S.splice(0).forEach(b))})};y.setHandlers({signal:u=>{if(!(e.isLeaving()||r.answeringPeer!==y||y.isDead)&&!(u.type!=="answer"&&u.type!=="candidate")){if(u.type==="candidate"&&!P){S.push(u);return}b(u)}}}),await y.signal(d)},Ls=async(e,t,n,o,s)=>{var d,g;let i;try{i=await e.toPlain({type:Pt,sdp:n})}catch{return}let r=e.peerStates[t],a=o&&(r!=null&&r.offerPeer)&&r.offerId===o?r.offerPeer:null,y=!o||((d=r==null?void 0:r.answerReplay)==null?void 0:d.offerId)===o?r==null?void 0:r.answeringPeer:null,c=!o&&(r!=null&&r.offerPeer)?r.offerPeer:null,m=s&&!s.isDead?s:(g=a!=null?a:y)!=null?g:c;m&&!m.isDead&&m.signal(i)},xs=async(e,t,n,o,s)=>{var r;let i;try{i=await e.toPlain({type:"answer",sdp:n})}catch{s&&(e.offerManager.reclaimLeased(s),s.isDead||s.destroy()),(r=e.onJoinError)==null||r.call(e,{error:"incorrect room password when decrypting answer",appId:e.appId,peerId:t,roomId:e.roomId});return}if(s){let a=mt(e.peerStates,t);if(e.offerManager.claimLeased(s),a.connectedPeer||a.offerAnswered||a.answeringPeer&&!a.answeringPeer.isDead&&re>t){s.destroy();return}if(a.answeringPeer){let y=a.answeringPeer;dt(a,y)}Fe(a),a.offerPeer=s,a.offerId=o!=null?o:null,a.offerAnswered=!0,yn(e,a,t,Qr),so(e,a,t,s),s.signal(i)}else{let a=e.peerStates[t];if(!a||!a.offerPeer||a.offerAnswered||o&&a.offerId&&o!==a.offerId||a.offerPeer.isDead)return;a.offerAnswered=!0,yn(e,a,t,Qr),a.offerPeer.signal(i)}},Us=(e,t,n)=>{let o=e.peerStates[t];!o||o.connectedPeer||o.offerRelays[n]&&(gn(o,n),e.checkDeactivate())},ao=e=>t=>async(n,o,s)=>{var u,f,v;if(e.isLeaving())return;let i=eo(o);if(!i||no(i,typeof o=="string"))return;let r=(u=je(i,"peerId"))!=null?u:"",a=je(i,"offer"),y=je(i,"answer"),c=je(i,"candidate"),m=je(i,"offerId"),d=to(i.peer)?i.peer:void 0,g=i.passive===!0;if(!r||r===re)return;let[S,P]=await de([e.rootTopicP,e.selfTopicP]);if(e.isLeaving()||n!==S&&n!==P||e.isPassive&&g||(e.isPassive&&!e.isActive&&!y&&!c&&(e.isActive=!0,(f=e.requeueAnnounce)==null||f.call(e)),e.isPassive&&!e.isActive))return;let b=e.peerStates[r],p=b==null?void 0:b.connectedPeer;if(p&&b){let E=Xr(p);if(E==="live"){b.connectedPeerUnhealthySinceMs=null;return}if(E==="stale")Ct(b,r,"message-from-stale-peer");else{let D=Date.now(),U=(v=b.connectedPeerUnhealthySinceMs)!=null?v:D;if(b.connectedPeerUnhealthySinceMs=U,D-U<Ss)return;Ct(b,r,"message-from-prolonged-disconnect")}}if(!e.reusePeer(r)){if(r&&!a&&!y&&!c){let E=mt(e.peerStates,r),D=re<r;if(E.answeringPeer||E.connectedPeer||E.offerAnswered)return;if(!D&&!E.offerPeer){let U=Ot.get(E);U||(U=[],Ot.set(E,U));let W=U[t];if(W!==void 0&&Date.now()-W<1e3)return;U[t]=Date.now();let F=await Ue(_e(e.rootTopicPlaintext,r));!e.isLeaving()&&!E.connectedPeer&&!E.answeringPeer&&!E.offerAnswered&&s(F,oe({peerId:re}));return}return E.offerRelays[t]?void 0:(E.offerRelays[t]=ut,io(e,t,r,s))}if(a)return Cs(e,t,r,a,m,s);if(c)return Ls(e,r,c,m,d);if(y)return xs(e,r,y,m,d)}};var Ut=5333,Hs=[233,533,1333],co=7533,Is=123333,hn=({init:e,subscribe:t,announce:n,deactivate:o})=>{let s={},i={},r=new Yr,a=()=>ke(s).some(d=>ue(d).length>0),y=!1,c=[],m=Q;return(d,g,S)=>{var ne,Te,ht,Tn,An,Rn,En,Mn;if(!d)throw _("requires a config map as the first argument");if(S&&typeof S!="object")throw _("third argument must be a callbacks object");let{appId:P}=d,b=S==null?void 0:S.onJoinError,p=S==null?void 0:S.onPeerHandshake,u=S==null?void 0:S.handshakeTimeoutMs;if(!P)throw _("config map is missing appId field");if(!g)throw _("roomId argument required");if(d.maxReceiveBytes!==void 0&&(!Number.isSafeInteger(d.maxReceiveBytes)||d.maxReceiveBytes<=0))throw _("maxReceiveBytes must be a positive safe integer");if(u!==void 0&&(!Number.isFinite(u)||u<=0))throw _("handshakeTimeoutMs must be a positive number");if((ne=s[P])!=null&&ne[g])return s[P][g];(ht=(Te=i[P])==null?void 0:Te[g])==null||ht.call(Te,!0);let f=_e(Y,P,g),v=Ue(f),E=Ue(_e(f,re)),D=mr((Tn=d.password)!=null?Tn:"",P,g),U=yr(P,g),W=(An=d._test_only_sharedPeerIdleMs)!=null?An:Is,F=!1,G=j=>async V=>({type:V.type,sdp:await j(D,V.sdp)}),Z=G(wr),ee=G(hr),se=()=>sn(!0,d),l=!1,T=new vr(se),M=async j=>{let V=await j.getOffer();if(!V||V.type!=="offer")throw _("failed to get offer for peer");return(await ee(V)).sdp},O=(j,V)=>{K.connect(V,j,W)},C=!1,R=()=>{w||!l||C||(C=!0,queueMicrotask(()=>{var j;C=!1,F||(j=I.requeueAnnounce)==null||j.call(I)}))},h=(j,V)=>{if(F)return;let X=I.peerStates[V];(X==null?void 0:X.connectedPeer)===j&&(Ct(X,V,"close-event"),z(),R())},w=!!d.passive,A,x=Q,z=()=>{if(!w||!I.isActive)return;let j=!1;Me(I.peerStates).forEach(([V,X])=>{X.connectedPeer||X.answeringPeer||X.offerInitPromise||X.offerPeer||X.offerRelays.some(Boolean)?j=!0:delete I.peerStates[V]}),j||(I.isActive=!1,A=$(A),ce.forEach($),ce.length=0,x(),K.setActive(!1))},I={appId:P,roomId:g,config:d,peerStates:{},rootTopicPlaintext:f,rootTopicP:v,selfTopicP:E,toPlain:Z,toCipher:ee,isLeaving:()=>F,isPassive:w,isActive:!w,onJoinError:b,offerManager:T,encryptOffer:M,initPeer:sn,connectPeer:O,disconnectPeer:h,reusePeer:j=>K.reuse(j),checkDeactivate:z,announceIntervals:[],announceIntervalMs:Ut},q={config:d,appId:P,roomId:g,isPassive:w},ae=ao(I);if(!y){let j=e(d);c=(Array.isArray(j)?j:[j]).map(V=>Promise.resolve(V)),y=!0,m=(Rn=d.relayConfig)!=null&&Rn.manualReconnection?Q:dr()}let te=c.map(()=>Ut),fe=c.map(()=>0),we=c.map(()=>0),ce=[],Se=c.map(async(j,V)=>t(await j,await v,await E,ae(V),X=>T.getOffers(X,M),q));de([v,E]).then(([j,V])=>{if(F)return;let X=async(Ae,ie)=>{var On,Cn,Ln,xn,Un;if(F||w&&!I.isActive)return;let We=w?{passive:!0}:void 0,Re;try{Re=await n(Ae,j,V,We,q),we[ie]=0}catch(So){if(F)return;let Hn=(On=we[ie])!=null?On:0;Hn===0&&((Cn=d.relayConfig)==null?void 0:Cn.warnOnRelayFailure)!==!1&&console.warn(`${Y}: announce failed - ${Le(So,"")}`),we[ie]=Hn+1}if(F||w&&!I.isActive||Re&&typeof Re!="number"&&"stopAnnouncing"in Re)return;typeof Re=="number"?(I.announceIntervals[ie]=Re,te[ie]=Re):Re&&(te[ie]=Re.nextAnnounceMs,l||(l=Re.reannounceOnDisconnect===!0));let Nt=(Ln=fe[ie])!=null?Ln:0;fe[ie]=Nt+1;let Dn=(xn=te[ie])!=null?xn:Ut,Bn=(Un=Hs[Nt])!=null?Un:Nt===3&&typeof Re=="object"?Ut:void 0;ce[ie]=setTimeout(()=>{X(Ae,ie)},typeof Bn=="number"?Math.min(Dn,Bn):Dn)};x=()=>{o&&c.forEach(async Ae=>{let ie=await Ae;F||o(ie,j,V,q)})},I.requeueAnnounce=()=>{ce.forEach($),ce.length=0,A=$(A),K.setActive(!0),A=setTimeout(z,co),c.forEach(async(Ae,ie)=>{let We=await Ae;We&&!F&&(fe[ie]=0,X(We,ie))})},Se.forEach(async(Ae,ie)=>{if(await Ae,F)return;let We=await c[ie];We&&!F&&(!w||I.isActive)&&X(We,ie)})});let k=Q,B=(En=d.password)!=null?En:"",{compose:L}=kr(B,P,g),N=L(p),J=()=>{var j;((j=s[P])==null?void 0:j[g])===Be&&(delete s[P][g],ue(s[P]).length===0&&delete s[P])},me=()=>{var j;((j=i[P])==null?void 0:j[g])===ye&&(delete i[P][g],ue(i[P]).length===0&&delete i[P])},ye=(j=!1)=>{F||(F=!0,k=Q,J(),me(),K.leave(),Me(I.peerStates).forEach(([V,X])=>{X.connectedPeer&&!X.connectedPeer.isDead&&(r.owns(P,V,X.connectedPeer)||X.connectedPeer.destroy()),X.answeringPeer&&!X.answeringPeer.isDead&&X.answeringPeer.destroy(),Fe(X),xt(X),X.connectedPeer=null,X.connectedPeerUnhealthySinceMs=null}),ce.forEach($),A=$(A),Se.forEach(async V=>{(await V)()}),T.destroy(),!(j||a())&&(y=!1,m()))},qe={...d.maxReceiveBytes===void 0?{}:{maxReceiveBytes:d.maxReceiveBytes},...N?{onPeerHandshake:N}:{},...u===void 0?{}:{handshakeTimeoutMs:u},isPassive:w,onBeforeLeave:()=>{var j;J(),((j=i[P])!=null?j:i[P]={})[g]=ye},onHandshakeError:(j,V)=>b==null?void 0:b({error:V.replace(/^handshake failed: /,""),appId:P,peerId:j,roomId:g})};(Mn=s[P])!=null||(s[P]={});let Be=Kr(j=>k=j,j=>{if(F)return;let V=I.peerStates[j];V!=null&&V.connectedPeer&&pn(V,V.connectedPeer),z(),R()},()=>ye(!1),qe),K=r.registerRoom(P,g,U,{active:!w||I.isActive,onPeer:(j,V,X)=>{let Ae=mt(I.peerStates,V);oo(Ae,X),w&&!I.isActive&&(I.isActive=!0,K.setActive(!0),I.requeueAnnounce?I.requeueAnnounce():(A=$(A),A=setTimeout(z,co))),k(j,V),Fe(Ae)},onDetach:(j,V)=>{pn(I.peerStates[j],V),z()}});return s[P][g]=Be}};var Ns=6e4,wn=e=>{if(!e)throw _("topic strategy missing room context");return e},yt=(e,t,n,o)=>({kind:t,appId:e.appId,roomId:e.roomId,rootTopic:n,selfTopic:o}),vn=({steadyAnnounceIntervalMs:e=Ns,reannounceOnDisconnect:t=!0,init:n,subscribeTopic:o,publishTopic:s,unpublishTopic:i})=>hn({init:n,subscribe:async(r,a,y,c,m,d)=>{let g=wn(d),S=(D,U)=>{s(r,D,U,yt(g,"signal",a,y))},P=null,b=!1,p=null,u=!1,f=D=>{b||(b=!0,D())},v=()=>(p||(p=Promise.resolve(o(r,y,(D,U)=>{u||c(D,U,S)},yt(g,"self",a,y))).then(D=>{P=D,u&&f(D)})),p);g.isPassive||await v();let E=await o(r,a,async(D,U)=>{u||(g.isPassive&&ro(U)&&await v(),u||await c(D,U,S))},yt(g,"root",a,y));return()=>{u=!0,P&&f(P),E()}},announce:async(r,a,y,c,m)=>{var S,P;let d=wn(m),g=await s(r,a,oe({peerId:re,...c}),yt(d,"announce",a,y));return typeof g=="number"||g!==void 0&&"stopAnnouncing"in g?g:{nextAnnounceMs:(S=g==null?void 0:g.nextAnnounceMs)!=null?S:e,reannounceOnDisconnect:(P=g==null?void 0:g.reannounceOnDisconnect)!=null?P:t}},...i?{deactivate:(r,a,y,c)=>{let m=wn(c);return i(r,a,yt(m,"announce",a,y))}}:{}});var bn=tn(e=>e.socket),_s=5,lo="x",uo="EVENT",{secretKey:zs,publicKey:$s}=Vt.keygen(),js=xe($s),kn={},fo=250,Ge=6e4,Fs=9e5,Sn=5333,pt=new WeakMap,It=bn.scoped(),Pn=new WeakSet,qs=e=>{let t=pt.get(e),n=Math.min(t!=null&&t.delayMs?Math.max(Ge,t.delayMs*2):Ge,Fs);return pt.set(e,{delayMs:n,untilMs:Date.now()+n}),n},gt=e=>{let t=pt.get(e);if(!t)return 0;let n=t.untilMs-Date.now();return n>0?n:0},Ht=e=>({nextAnnounceMs:e}),Ws={stopAnnouncing:!0},Ks=e=>{var t;return Pn.has(e)?!1:(Pn.add(e),pt.delete(e),(t=e.close)==null||t.call(e),!0)},mo=()=>Math.floor(Date.now()/1e3),yo=e=>{var t;return(t=kn[e])!=null?t:kn[e]=bt(e,1e4)+2e4},Vs=async(e,t)=>{let n={kind:yo(e),tags:[[lo,e]],created_at:mo(),content:t,pubkey:js},o=await Je("SHA-256",oe([0,n.pubkey,n.created_at,n.kind,n.tags,n.content]));return oe([uo,{...n,id:xe(o),sig:xe(await Vt.signAsync(o,zs))}])};var he={},po=e=>{e.flushWaiters.forEach(t=>t()),e.flushWaiters.clear()},Js=(e,t,n)=>{var s,i;let o=(i=he[s=e.url])!=null?i:he[s]={subIds:[],topics:new Map,updateTimer:null,flushWaiters:new Set,retryTimer:null,retryMs:Sn,pendingEose:new Set,requestedAt:0};o.topics.set(t,n),go(e,o)},Gs=(e,t)=>{let n=he[e.url];n&&(n.topics.delete(t),delete It.forRelay(e)[t],n.topics.size===0?(n.retryTimer!==null&&clearTimeout(n.retryTimer),n.updateTimer!==null&&(clearTimeout(n.updateTimer),n.updateTimer=null),po(n),n.subIds.forEach(o=>e.send(oe(["CLOSE",o]))),delete he[e.url]):go(e,n))},go=(e,t)=>{t.updateTimer===null&&(t.updateTimer=setTimeout(()=>{t.updateTimer=null;try{ho(e)}finally{po(t)}},0))},Zs=e=>{let t=he[e.url];return!t||t.updateTimer===null?Promise.resolve():new Promise(n=>t.flushWaiters.add(n))},ho=e=>{let t=he[e.url];if(!t||t.topics.size===0)return;let n=[...t.topics.keys()],o=[],s=mo();for(let i=0;i<n.length;i+=fo)o.push(n.slice(i,i+fo));for(;t.subIds.length>o.length;){let i=t.subIds.pop();i&&e.send(oe(["CLOSE",i]))}t.pendingEose.clear(),t.requestedAt=Date.now(),o.forEach((i,r)=>{var y,c;let a=(c=(y=t.subIds)[r])!=null?c:y[r]=pe(64);t.pendingEose.add(a),e.send(oe(["REQ",a,{kinds:[...new Set(i.map(yo))],since:s,"#x":i}]))})},wo=e=>{let t=he[e.url];if(t&&t.topics.size>0&&!e.isClosed){if(gt(e)>0){Po(e,!0);return}t.retryTimer!==null&&(clearTimeout(t.retryTimer),t.retryTimer=null),ho(e),vo(e)}},vo=e=>{Object.entries(It.forRelay(e)).forEach(([t,n])=>{ko(e,t,n,!0)})},ko=async(e,t,n,o)=>{var r;if(Pn.has(e)||e.isClosed)return o?Ws:void 0;let s=gt(e);if(s>0||e.socket.readyState!==1)return o?Ht(Math.max(Ge,s)):void 0;let i=await Vs(t,o?oe({...De(n),nonce:pe(8)}):n);if(o&&!((r=he[e.url])!=null&&r.topics.has(t)))return Ht(Ge);if(gt(e)>0||e.isClosed||e.socket.readyState!==1)return o?Ht(Ge):void 0;if(e.send(i),o)return Ht(Ge)},Po=(e,t)=>{let n=he[e.url];if(!n||n.retryTimer!==null&&!t)return;n.retryTimer!==null&&clearTimeout(n.retryTimer);let o=t?gt(e):n.retryMs;n.retryMs=Math.min(n.retryMs*2,Ge),n.retryTimer=setTimeout(()=>{n.retryTimer=null,wo(e)},Math.max(o,Sn))},bo=vn({init:e=>Xt(e,Xs,_s,!0).map(t=>{let n=bn.register(t,()=>en(t,o=>{var y,c;let[s,i,r,a]=De(o);if(s!==uo){let m=`${Y}: relay failure from ${n.url} - `,d=s==="CLOSED"&&typeof r=="string"?r:a,g=s==="OK"&&r===!1,S=(g||s==="CLOSED")&&(d==null?void 0:d.startsWith("rate-limited:")),P=g&&(d==null?void 0:d.startsWith("duplicate:")),b=d&&/^(blocked|restricted|auth-required|pow):/.test(d);if(s==="OK"&&r===!0&&gt(n)===0&&pt.delete(n),(g||s==="CLOSED")&&b&&!Ks(n))return;if(S)qs(n);else if(s==="EOSE"){let p=he[n.url];p!=null&&p.pendingEose.delete(i)&&p.pendingEose.size===0&&(p.retryMs=Sn,p.retryTimer!==null&&(clearTimeout(p.retryTimer),p.retryTimer=null),Date.now()-p.requestedAt>=1e3&&vo(n))}s==="CLOSED"&&!b&&Po(n,!!S),!P&&((y=e.relayConfig)==null?void 0:y.warnOnRelayFailure)!==!1&&(s==="NOTICE"?console.warn(m+i):(g||s==="CLOSED")&&console.warn(m+d));return}if(r&&typeof r=="object"&&"content"in r){let m=he[n.url];if(m!=null&&m.subIds.includes(i)&&r.tags){let d=r.tags.find(g=>g[0]===lo);d!=null&&d[1]&&((c=m.topics.get(d[1]))==null||c(d[1],r.content))}}},()=>wo(n)));return n.ready}),subscribeTopic:(e,t,n,o)=>{let s=(r,a)=>{n(r,a)};Js(e,t,s);let i=()=>{var r;((r=he[e.url])==null?void 0:r.topics.get(t))===s&&Gs(e,t)};return o.kind==="root"?Zs(e).then(()=>i):i},publishTopic:(e,t,n,{kind:o})=>{let s=typeof n=="string"?n:oe(n);return o==="announce"&&(It.forRelay(e)[t]=s),ko(e,t,s,o==="announce")},unpublishTopic:(e,t)=>{delete It.forRelay(e)[t]}}),fa=bn.getSockets,Xs=["0x-nostr-relay.fly.dev","bendernostur.duckdns.org:8443","cdn.satellite.earth","nos.lol","nostr.chaima.info","nostr.christiansass.de","nostr.rblb.it","nostr.red5d.dev","nostr.robosats.org","nostr.stakey.net","nostrcity-club.fly.dev","relay-dev.gulugulu.moe","relay.aarpia.com","relay.agentry.com","relay.bitmacro.cloud","relay.bullishbounty.com","relay.degmods.com","relay.flashapp.me","relay.grigic.org","relay.hackshed.dev","relay.kaleidoswap.com","relay.layer.systems","relay.nostr.blockhenge.com","relay.nostr.dev.br","relay.nostrmap.net","relay.novospes.com","relay.piazza.today","relay.routstr.com","testr.nymble.world"].map(e=>"wss://"+e);window.Trystero={joinRoom:bo,selfId:re};})();
+/*! Bundled license information:
+
+@noble/secp256k1/index.js:
+  (*! noble-secp256k1 - MIT License (c) 2019 Paul Miller (paulmillr.com) *)
+*/
+</script>
 <script>
 (function(){
 'use strict';
@@ -1285,7 +1480,13 @@ function say(p, key, chance){
   let live = 0; for (const q of fielders.concat(builders)) if (q.bubble && q.bubble.t > 0) live++;
   if (live >= 2) return;
   if (!p.bubble) makeBubble(p);
-  const arr = LINES[key], text = arr[Math.floor(Math.random()*arr.length)], b = p.bubble, g = b.cv.getContext('2d');
+  const arr = LINES[key], text = arr[Math.floor(Math.random()*arr.length)];
+  sayText(p, text); p.sayAt = now + 2.6 + Math.random();
+  if (online() && NET && NET.host) netFx({k:'say', who:charId(p), text});
+}
+function sayText(p, text){
+  if (!p.bubble) makeBubble(p);
+  const b = p.bubble, g = b.cv.getContext('2d');
   g.clearRect(0, 0, 360, 110);
   let fs = 42; g.font = '800 ' + fs + 'px "Baloo 2", "Trebuchet MS", sans-serif';
   while (g.measureText(text).width > 310 && fs > 24){ fs -= 2; g.font = '800 ' + fs + 'px "Baloo 2", "Trebuchet MS", sans-serif'; }
@@ -1294,7 +1495,6 @@ function say(p, key, chance){
   g.beginPath(); g.moveTo(x0 + 16, 6); g.arcTo(x0 + tw, 6, x0 + tw, 82, 16); g.arcTo(x0 + tw, 82, x0, 82, 16); g.lineTo(196, 82); g.lineTo(180, 104); g.lineTo(170, 82); g.arcTo(x0, 82, x0, 6, 16); g.arcTo(x0, 6, x0 + tw, 6, 16); g.closePath(); g.fill(); g.stroke();
   g.fillStyle = '#15163A'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 180, 46);
   b.tex.needsUpdate = true; b.t = 1.5; b.sp.visible = true; b.sp.material.opacity = 1;
-  p.sayAt = now + 2.6 + Math.random();
 }
 function updateBubbles(dt){
   for (const q of fielders.concat(builders)){
@@ -1311,13 +1511,15 @@ let rebuildT = 0, placed = 0, ball = {state:'none'}, slowT = 0, shakeAmt = 0, ca
 let drag = null, joy = null, keys = {}, bannerTimer = 0, lastHint = '', clatterT = 0, nearChecked = false;
 let paused = false, medals = [], medalKanche = 0, banked = false, par = null;
 let side = S.side === 'field' ? 'field' : 'build', aiTimer = 0, aim = null, outs = 0, ballId = 0;
+let NET = null; // online match state (null in solo)
+const online = () => mode === 'online';
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), gPlane = new THREE.Plane(new THREE.Vector3(0,1,0), 0), hitV = new THREE.Vector3();
 function groundAt(cx, cy){ ndc.set(cx/innerWidth*2-1, -(cy/innerHeight)*2+1); ray.setFromCamera(ndc, camera); return ray.ray.intersectPlane(gPlane, hitV) ? {x:hitV.x, z:hitV.z} : null; }
 const ORIGIN = {x:0.35, y:1.35, z:10.9};
 const baseYaw = Math.atan2(-ORIGIN.x, ORIGIN.z);
 const isTouch = matchMedia('(pointer: coarse)').matches;
 
-function hint(t){ if (tut && t) t = ''; if (t === lastHint) return; lastHint = t; const h = $('hint'); h.textContent = t; h.hidden = !t; }
+function hint(t){ if (online() && !hint.net) return; if (tut && t) t = ''; if (t === lastHint) return; lastHint = t; const h = $('hint'); h.textContent = t; h.hidden = !t; }
 function banner(t, s, dur){ $('banner').style.top = (phase === 'smash' || phase === 'smashWatch') ? '4%' : ''; $('bannerT').textContent = t; $('bannerS').textContent = s || ''; const b = $('banner'); b.hidden = true; void b.offsetWidth; b.hidden = false; bannerTimer = dur || 1.6; }
 const tmpV = new THREE.Vector3();
 function popAt(x, y, z, text, cls){
@@ -1372,9 +1574,10 @@ function sidelineFielders(){
     f.mesh.position.set(f.x, 0, f.z); f.mesh.rotation.y = side > 0 ? -Math.PI/2 : Math.PI/2; f.mesh.visible = k < fielderCount();
   });
 }
-function fielderCount(){ return side === 'field' ? 3 : round === 1 ? 2 : round < 4 ? 3 : 4; }
+function fielderCount(){ if (online()) return 4; return side === 'field' ? 3 : round === 1 ? 2 : round < 4 ? 3 : 4; }
 function hideBuilders(){ builders.forEach(b => { b.active = false; b.mesh.visible = false; b.carry = null; }); youMark.visible = false; }
 function startSmash(){
+  if (online()) netAssignRound();
   clearBubbles(); par = null; player.mesh.rotation.z = 0;
   fielders.forEach(f => f.mesh.userData.body.material.emissive.setHex(0));
   phase = 'smash'; phaseT = 0; throwsLeft = 3; placed = 7; crackPlayed = false;
@@ -1390,6 +1593,7 @@ function startSmash(){
     const nb = round >= 5 ? 4 : 3;
     banner(round === 1 ? 'Defend!' : 'Round ' + round, 'They get 3 throws · ' + nb + ' builders' + (windX ? ' · wind' : ''), 1.6);
   } else if (round === 1) banner('Smash!', 'Knock down ' + needDown() + ' or more slabs', 1.5); else banner('Round ' + round, fielderCount() + ' fielders' + (windX ? ' · wind' : ''), 1.5);
+  if (online()) netAfterStartSmash();
 }
 let aimStage = 'dir', aimT = 0, lockedYaw = 0;
 const aimGeo = new THREE.PlaneGeometry(1, 1); aimGeo.rotateX(-Math.PI/2); aimGeo.translate(0.5, 0, 0);
@@ -1412,7 +1616,7 @@ function setAimLine(yawOff, col){
   aimLine.rotation.y = -Math.atan2(-Math.cos(yaw), Math.sin(yaw)); aimLine.material.color.setHex(col);
 }
 function lockAim(){
-  if (!(phase === 'smash' && side === 'build' && ballReady)) return;
+  if (!(phase === 'smash' && (side === 'build' || (online() && netSmasher())) && ballReady)) return;
   ensureAudio();
   if (aimStage === 'dir'){
     lockedYaw = Math.sin(aimT*aimSpeed())*0.42; aimStage = 'power'; aimT = 0; sfx.windup(); tutEvent('aimLocked');
@@ -1429,6 +1633,7 @@ function readyBall(){
   ballReady = true; ball = {state:'none'};
   if (ballBody){ world.removeBody(ballBody); ballBody = null; }
   ballMesh.visible = true; ballMesh.position.set(ORIGIN.x, ORIGIN.y, ORIGIN.z);
+  if (side === 'field' && online() && netSmasher()) return;
   if (side === 'field'){ aiTimer = 1.3; hint('Kabir is lining up a throw. If the stack survives all 3, you win the round.'); return; }
   hint(isTouch ? 'Tap when the swinging line points at the stack.' : 'Click or press Space when the swinging line points at the stack.');
 }
@@ -1474,12 +1679,12 @@ function evaluateSmash(){
     const bonus = 300*round; addScore(bonus, 0, 2.6, 0, 'Stack held', 'gold'); medalKanche += 2; setTimeout(() => popAt(0, 3.4, 0, '+2 kanche', 'gold'), 250);
     sfx.pittu(); banner('Stack held!', 'Round ' + round + ' won · +' + bonus.toLocaleString('en-IN'), 1.9);
     if (ballBody){ world.removeBody(ballBody); ballBody = null; } ballMesh.visible = false;
-    phase = 'pittu'; phaseT = 0; hint('');
+    phase = 'pittu'; phaseT = 0; hint(''); if (online()) netRoundWon('field', 'Stack held');
   } else if (side === 'field'){
     hint(down + ' down. ' + throwsLeft + ' throw' + (throwsLeft>1?'s':'') + ' left for them.');
     if (ballBody){ world.removeBody(ballBody); ballBody = null; }
     ballMesh.position.set(ORIGIN.x, ORIGIN.y, ORIGIN.z);
-    phase = 'smash'; ballReady = false; aiTimer = 1.1;
+    phase = 'smash'; if (online() && netSmasher()) readyBall(); else { ballReady = false; aiTimer = 1.1; }
   } else if (down >= need){
     let pts = 0; const mul = S.loadout === 'heavy' ? 1.3 : S.loadout === 'clay' ? 0.7 : 1;
     for (const s of stones) if (stoneDisplaced(s)) pts += Math.hypot(s.body.position.x, s.body.position.z)*7;
@@ -1528,7 +1733,7 @@ function startRebuild(){
   first.holdT = -1.0;
   if (side === 'field'){
     player.mesh.visible = false;
-    const nb = round >= 5 ? 4 : 3, spots = [[-2.2, 8.6], [0, 9.6], [2.2, 8.6], [0, 7.4]];
+    const nb = online() ? 4 : round >= 5 ? 4 : 3, spots = [[-2.2, 8.6], [0, 9.6], [2.2, 8.6], [0, 7.4]];
     builders.forEach((b, i) => {
       bTeam.runner = null; bTeam.stager = null; bTeam.goSaid = 0; bTeam.heldFor = 0; b.waitT = 0; b.commit = false; b.braveT = 0; b.alerted = false; b.baitT = 0;
       b.active = i < nb; b.mesh.visible = b.active; b.out = false; b.carry = null; b.role = 'decoy'; b.seen = -1; b.react = 0; b.dodgeT = 0; b.hideT = 0; b.braveT = 0; b.baitT = 1 + Math.random()*2;
@@ -1538,8 +1743,9 @@ function startRebuild(){
   }
   props.forEach(p => { if (p.canopy) p.canopy.material.opacity = 0.32; });
   danger.visible = true; camMode = 'rebuild'; phase = 'rebuild'; rebuildT = 0;
-  setPar(side === 'field' ? (round >= 5 ? 4 : 3) : stones.length - placed); player.label.visible = side === 'build';
+  setPar(side === 'field' ? (online() ? 4 : round >= 5 ? 4 : 3) : stones.length - placed); player.label.visible = side === 'build';
   if (isTouch) $('dashBtn').hidden = false;
+  if (online()){ netAfterStartRebuild(); return; }
   if (side === 'field'){
     $('dashBtn').hidden = true;
     banner('Hit them!', 'Get every builder out before the stack is rebuilt', 1.6); tutEvent('rebuild');
@@ -1559,9 +1765,10 @@ function tierFor(t){ if (!par) return -1; for (let i=0;i<3;i++) if (t <= par[i])
 function updateTimer(){
   const tp = $('timePlate'); const show = phase === 'rebuild' && par;
   tp.hidden = !show; if (!show) return;
-  $('timeLabel').textContent = side === 'field' ? 'Catch time' : 'Rebuild time';
+  $('timeLabel').textContent = online() ? 'Round time' : side === 'field' ? 'Catch time' : 'Rebuild time';
   $('timeVal').textContent = rebuildT.toFixed(1) + 's';
   const i = tierFor(rebuildT), m = $('timeMedal');
+  m.hidden = online();
   if (i < 0){ m.className = 'medal none'; m.textContent = 'No medal · keep going'; }
   else { m.className = 'medal ' + TIERS[i][0]; m.textContent = TIERS[i][1] + ' · ' + (par[i] - rebuildT).toFixed(1) + 's left'; }
 }
@@ -1571,6 +1778,7 @@ function bankKanche(){
   S.lifetime += k; persist(); return k;
 }
 function roundComplete(title){
+  if (online()) netRoundWon('field', 'All out');
   const ti = tierFor(rebuildT), tier = TIERS[ti];
   const timeBonus = Math.max(0, Math.round((par ? par[2] - rebuildT : 0)*12));
   const bonus = (150 + timeBonus + (tier ? tier[2] : 0) + (side === 'field' ? (stones.length - placed)*40 : 0))*round;
@@ -2211,6 +2419,7 @@ function builderOut(b){
   if (builders.every(x => !x.active || x.out)) roundComplete('ALL OUT!');
 }
 function builderWin(b){
+  if (online()){ netBuildersWin(b); return; }
   if (mode === 'practice'){ sfx.out(); finishPractice(false); return; }
   if (lucky > 0){
     lucky--; sfx.near(); youMark.visible = false; aim = null;
@@ -2243,12 +2452,13 @@ function coverSpot(b, sx, sz, goal){
 }
 function updateFieldTeam(dt){
   let fetcher = null;
-  if (ball.state === 'loose'){ let bd = 1e9; for (const f of fielders){ if (!f.active) continue; const d = Math.hypot(f.x - ball.x, f.z - ball.z); if (d < bd){ bd = d; fetcher = f; } } }
+  if (ball.state === 'loose'){ let bd = 1e9; for (const f of fielders){ if (!f.active || f.human != null) continue; const d = Math.hypot(f.x - ball.x, f.z - ball.z); if (d < bd){ bd = d; fetcher = f; } } }
   const alive = builders.filter(b => b.active && !b.out);
   const holder = ball.state === 'held' ? ball.holder : null;
   for (const f of fielders){
     if (!f.active) continue;
     f.cd = Math.max(0, f.cd - dt); f.tele.visible = false; f.mesh.userData.body.material.emissive.setHex(0);
+    if (online() && netFielder(f, dt, holder, alive, fetcher)){ f.mesh.position.set(f.x, 0, f.z); continue; }
     if (f === holder){
       let tx, tz;
       if (aim && aim.pt){ tx = aim.pt.x; tz = aim.pt.z; }
@@ -2352,7 +2562,7 @@ function updateBuilders(dt){
   if (carrierOfNext) T.runner = carrierOfNext;
   else if (n){
     let best = null, bc = 1e9;
-    for (const b of alive){ if (b.carry) continue; const c = Math.hypot(b.x - n.x, b.z - n.z) + (holder && los(holder.x, holder.z, b.x, b.z) ? 3 : 0); if (c < bc){ bc = c; best = b; } }
+    for (const b of alive){ if (b.carry || b.human != null) continue; const c = Math.hypot(b.x - n.x, b.z - n.z) + (holder && los(holder.x, holder.z, b.x, b.z) ? 3 : 0); if (c < bc){ bc = c; best = b; } }
     if (!T.runner || T.runner.out || !alive.includes(T.runner) || (T.runner.carry && T.runner.carry !== n)) T.runner = best;
     else if (best && best !== T.runner){ const cur = Math.hypot(T.runner.x - n.x, T.runner.z - n.z); if (bc < cur*0.6 - 1) T.runner = best; }
   } else T.runner = null;
@@ -2361,7 +2571,7 @@ function updateBuilders(dt){
   if (alive.length >= 2 && nextNext && !nextNext.placed){
     T.stager = alive.find(b => b !== T.runner && b.carry === nextNext) || null;
     if (!T.stager && freeStone(nextNext.i)){
-      let bd = 1e9; for (const b of alive){ if (b === T.runner || b.carry) continue; const d = Math.hypot(b.x - nextNext.x, b.z - nextNext.z); if (d < bd){ bd = d; T.stager = b; } }
+      let bd = 1e9; for (const b of alive){ if (b === T.runner || b.carry || b.human != null) continue; const d = Math.hypot(b.x - nextNext.x, b.z - nextNext.z); if (d < bd){ bd = d; T.stager = b; } }
     }
   }
   // aim reading: how long has your aim been held steady?
@@ -2380,6 +2590,7 @@ function updateBuilders(dt){
   if (tClock > 1.0 && T.runner && tt > T.goSaid){ T.goSaid = tt + 4; say(T.runner, 'go', 0.6); }
 
   for (const b of alive){
+    if (b.human != null){ netBuilderHuman(b, dt, n, nextNext); if (phase !== 'rebuild') return; continue; }
     b.role = b === T.runner ? 'run' : b === T.stager ? 'stage' : 'decoy';
     // ---- dodge a ball they can see coming ----
     if (ball.state === 'flight' && b.seen !== ball.id){
@@ -2535,9 +2746,10 @@ function updateCamera(rdt){
     dPos.set(0, (portrait ? 3.6 : 3.0) + extra*0.2, (portrait ? 17.5 : 15.6) + extra*0.25); dLook.set(0, 0.9 + extra*0.42, 0); fov = (portrait ? 58 : 42) + extra*3.5;
     if (phase === 'smashWatch' || phase === 'settle'){ dPos.set(0, 4.2, 12); dLook.set(0, 0.5, 0); }
   } else {
-    const follow = portrait ? 0.8 : 0.32, H = portrait ? 19 : 19.5;
+    const follow = online() ? (portrait ? 0.85 : 0.55) : portrait ? 0.8 : 0.32, H = portrait ? 19 : 19.5;
     let fx = player.x, fz = player.z;
-    if (side === 'field'){ const h = ball.state === 'held' ? ball.holder : null; fx = h ? h.x*0.6 : (ball.x || 0)*0.6; fz = h ? h.z*0.6 : (ball.z || 0)*0.6; }
+    if (online()){ const c = netFollow(); fx = c.x; fz = c.z; }
+    else if (side === 'field'){ const h = ball.state === 'held' ? ball.holder : null; fx = h ? h.x*0.6 : (ball.x || 0)*0.6; fz = h ? h.z*0.6 : (ball.z || 0)*0.6; }
     dLook.set(fx*follow, 0, -0.5 + (fz + 0.5)*follow*0.8);
     dPos.set(dLook.x, H, dLook.z + H*0.6); fov = portrait ? 64 : 50; k = 4;
   }
@@ -2552,6 +2764,7 @@ function updateCamera(rdt){
 /* ---------------- pause ---------------- */
 const PAUSABLE = ['smash', 'smashWatch', 'settle', 'rebuild', 'pittu', 'dying'];
 function pauseGame(){
+  if (online()){ netMenuToggle(true); return; }
   if (paused || !PAUSABLE.includes(phase)) return;
   paused = true; keys = {}; joy = null; $('joy').hidden = true; drag = null; aim = null;
   $('pauseMode').textContent = (mode === 'daily' ? 'Daily Gully' : 'Free Play') + ' · ' + (side === 'field' ? 'Fielders' : 'Builders');
@@ -2578,6 +2791,8 @@ let last = performance.now();
 function frame(now){
   requestAnimationFrame(frame);
   const rdt = Math.min(0.05, (now - last)/1000); last = now;
+  if (NET) netTick(rdt);
+  if (NET && NET.match && !NET.host){ netGuestFrame(rdt, now); return; }
   if (paused){ renderer.render(scene, camera); return; }
   if (slowT > 0) slowT -= rdt;
   const dt = rdt*(slowT > 0 ? 0.35 : 1);
@@ -2588,7 +2803,7 @@ function frame(now){
     for (const s of stones) if (s.body){ s.mesh.position.copy(s.body.position); s.mesh.quaternion.copy(s.body.quaternion); if (s.body.flyUntil && performance.now() > s.body.flyUntil){ s.body.collisionFilterMask = -1; s.body.flyUntil = 0; } }
     if (ballBody){ ballMesh.position.copy(ballBody.position); ballMesh.quaternion.copy(ballBody.quaternion); }
     phaseT += dt;
-    if (phase === 'smash' && side === 'field' && !ballBody){ aiTimer -= dt; if (aiTimer <= 0) aiSmashThrow(); }
+    if (phase === 'smash' && side === 'field' && !ballBody){ if (online() && netSmasher()){ if (ballReady) updateAiming(rdt); } else { aiTimer -= dt; if (aiTimer <= 0) aiSmashThrow(); } }
     if (phase === 'smash' && side === 'build' && ballReady) updateAiming(rdt);
     if (phase === 'smashWatch'){
       const slow = stones.every(s => s.body.velocity.length() < 0.4) && (!ballBody || ballBody.velocity.length() < 1.2 || ballBody.position.z < -6);
@@ -2598,6 +2813,7 @@ function frame(now){
     }
   } else if (phase === 'rebuild'){
     rebuildT += dt;
+    if (online()) netPreSim(dt);
     if (side === 'field'){ updateFieldTeam(dt); if (phase === 'rebuild') updateBuilders(dt); if (phase === 'rebuild') updateBall(dt); }
     else { updatePlayer(dt); if (phase === 'rebuild') updateFielders(dt); if (phase === 'rebuild') updateBall(dt); }
     updateStonesVisual(dt);
@@ -2609,11 +2825,12 @@ function frame(now){
     phaseT += rdt; updateStonesVisual(dt);
     if (side === 'build') player.mesh.position.y = Math.abs(Math.sin(phaseT*8))*0.4;
     else builders.forEach(b => { if (b.active && b.out) b.mesh.position.y = 0.3; });
-    if (phaseT > 2.1){ player.mesh.position.y = 0; if (mode === 'practice' && tut){ finishPractice(true); } else { round++; startSmash(); } }
+    if (phaseT > 2.1){ player.mesh.position.y = 0; if (mode === 'practice' && tut){ finishPractice(true); } else if (online() && netMatchOver()){ } else { round++; startSmash(); } }
   }
   updateProps(dt); updatePuffs(dt); updateBubbles(rdt); animateWorld(now/1000, rdt); animatePeople(dt);
   updateCamera(rdt);
   if (phase !== 'menu' && phase !== 'over') updateHud();
+  if (online()) netAfterFrame(rdt);
   updateTimer(); updateTut(rdt);
   if (!(phase === 'rebuild' && side === 'field' && aim && aim.pt)) aimHead.visible = false;
   renderer.render(scene, camera);
@@ -2624,6 +2841,7 @@ function resize(){ renderer.setSize(innerWidth, innerHeight, false); camera.aspe
 addEventListener('resize', resize); resize();
 canvas.addEventListener('pointerdown', e => {
   ensureAudio();
+  if (online()){ netPointerDown(e); return; }
   if (phase === 'rebuild' && side === 'field'){
     if (!aim){ aim = {id:e.pointerId, pt:groundAt(e.clientX, e.clientY)}; canvas.setPointerCapture(e.pointerId); tutEvent('aimStart'); }
     return;
@@ -2637,6 +2855,7 @@ canvas.addEventListener('pointerdown', e => {
   }
 });
 canvas.addEventListener('pointermove', e => {
+  if (online()){ netPointerMove(e); return; }
   if (aim && e.pointerId === aim.id){ aim.pt = groundAt(e.clientX, e.clientY); return; }
   if (drag && e.pointerId === drag.id){
     const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
@@ -2650,6 +2869,7 @@ canvas.addEventListener('pointermove', e => {
   }
 });
 function endPointer(e){
+  if (online()){ netPointerUp(e); return; }
   if (aim && e.pointerId === aim.id){
     const a = aim; aim = null;
     if (e.type === 'pointerup' && phase === 'rebuild' && side === 'field' && ball.state === 'held' && a.pt){
@@ -2664,9 +2884,10 @@ function endPointer(e){
   } else if (joy && e.pointerId === joy.id){ joy = null; $('joy').hidden = true; }
 }
 canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel', endPointer);
-$('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); ensureAudio(); dash(); });
+$('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); ensureAudio(); if (online()) netLocalEvent({e:'dash'}); else dash(); });
 addEventListener('keydown', e => {
   if (e.code === 'Escape' && !$('how').hidden){ closeHow(); return; }
+  if (NET && netKeyDown(e)) return;
   if ((e.code === 'Escape' || e.code === 'KeyP') && !e.repeat){ if (paused) resumeGame(); else pauseGame(); e.preventDefault(); return; }
   if (paused){
     if (e.code === 'KeyR' && !e.repeat) restartRun();
@@ -2692,6 +2913,653 @@ $('menuBtn').onclick = () => showMenu();
 function syncMute(){ $('muteBtn').textContent = S.muted ? 'Sound off' : 'Sound on'; }
 $('muteBtn').onclick = () => { S.muted = !S.muted; persist(); syncMute(); ensureAudio(); };
 syncMute();
+
+/* ---------------- online multiplayer ----------------
+   Room codes, up to 8 players (4 v 4), peer-to-peer. The host's browser runs the real match (the same
+   simulation as solo, with humans plugged into characters). Everyone else sends inputs and draws
+   20 snapshots a second. Empty seats are played by the bots. */
+const NET_APP = 'pittu-rush-achal-v2', NET_HZ = 20, WIN_ROUNDS = /[?&]net=local/.test(location.search) && /[?&]wins=(\d)/.test(location.search) ? +RegExp.$1 : 3;
+const TEAM_NAMES = ['Team Gilli', 'Team Danda'];
+const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const BOT_B = BUILDER_DEF.map(d => d.name), BOT_F = PROFILES.map(p => p.name);
+const r2 = v => Math.round(v*100)/100, r3 = v => Math.round(v*1000)/1000;
+function newCode(){ let c = ''; for (let i=0;i<5;i++) c += CODE_ABC[Math.floor(Math.random()*CODE_ABC.length)]; return c; }
+function cleanCode(v){ return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); }
+function myName(){ return String(S.netName || '').trim().slice(0, 12) || 'Player'; }
+function netHint(t){ hint.net = true; hint(t); hint.net = false; }
+function charId(p){ if (p === player) return 'p'; let i = builders.indexOf(p); if (i >= 0) return 'b' + i; i = fielders.indexOf(p); return i >= 0 ? 'f' + i : ''; }
+function charById(id){ if (id === 'p') return player; const i = +id.slice(1); return id[0] === 'b' ? builders[i] : id[0] === 'f' ? fielders[i] : null; }
+
+/* ---- transport: WebRTC via Trystero (public Nostr relays for signalling, no server or account),
+   or a BroadcastChannel between tabs of one browser when the URL has ?net=local (for testing) ---- */
+function makeTransport(code, onMsg, onJoin, onLeave){
+  const local = /[?&]net=local/.test(location.search) || !window.Trystero;
+  if (local){
+    const self = 'L' + Math.random().toString(36).slice(2, 10), bc = new BroadcastChannel('pittu-' + code), peers = new Set();
+    bc.onmessage = ev => {
+      const m = ev.data; if (!m || m.from === self || (m.to && m.to !== self)) return;
+      if (m.sys === 'hi'){ if (!peers.has(m.from)){ peers.add(m.from); onJoin(m.from); } if (!m.ack) bc.postMessage({sys:'hi', ack:true, from:self, to:m.from}); return; }
+      if (m.sys === 'bye'){ if (peers.delete(m.from)) onLeave(m.from); return; }
+      if (!peers.has(m.from)){ peers.add(m.from); onJoin(m.from); }
+      onMsg(m.d, m.from);
+    };
+    const bye = () => { try { bc.postMessage({sys:'bye', from:self}); } catch(e){} };
+    addEventListener('pagehide', bye); bc.postMessage({sys:'hi', from:self});
+    return {self, local:true, send:(d, to) => bc.postMessage({d, from:self, to:to || null}), leave:() => { bye(); bc.close(); removeEventListener('pagehide', bye); }};
+  }
+  const room = Trystero.joinRoom({appId:NET_APP}, 'room-' + code);
+  const act = room.makeAction('m');
+  act.onMessage = (d, ctx) => onMsg(d, ctx.peerId);
+  room.onPeerJoin = id => onJoin(id); room.onPeerLeave = id => onLeave(id);
+  return {self:Trystero.selfId, local:false, send:(d, to) => { const p = act.send(d, to ? {target:to} : undefined); if (p && p.catch) p.catch(() => {}); }, leave:() => { try { room.leave(); } catch(e){} }};
+}
+
+/* ---- room lifecycle ---- */
+function netOpen(code, host){
+  if (NET) netLeave();
+  NET = {code, host, hostId:null, players:[], match:false, inputs:{}, aimPtr:null, sendT:0, inT:0, fx:[], snap:null, lastSnap:0,
+         teamScore:[0,0], buildTeam:0, stats:{}, assign:{b:[], f:[]}, smasher:null, roundDone:-1, joinT:0, saveLoad:null, local:{mx:0, mz:0, aim:null}};
+  NET.t = makeTransport(code, netOnMsg, netOnJoin, netOnLeave);
+  NET.me = NET.t.self;
+  if (host){ NET.hostId = NET.me; NET.players = [{id:NET.me, name:myName(), team:0}]; netShowLobby(); netBroadcastLobby(); }
+  else { NET.joinT = performance.now(); netOnlineStatus('Looking for room ' + code + '…', false); }
+}
+function netLeave(reason){
+  if (!NET) return;
+  const wasMatch = NET.match;
+  if (NET.host && NET.players.length > 1) netSendAll({t:'bye'});
+  try { NET.t.leave(); } catch(e){}
+  if (NET.saveLoad) S.loadout = NET.saveLoad;
+  builders.forEach((b, k) => { b.human = null; b.name = BOT_B[k]; setLabel(b, BOT_B[k], 0xC2410C); });
+  fielders.forEach((f, k) => { f.human = null; f.name = BOT_F[k]; setLabel(f, BOT_F[k], 0x1F4E8F); });
+  setLabel(player, 'YOU', 0xC2410C); player.label.visible = false;
+  NET = null; aim = null; joy = null; document.body.classList.remove('net');
+  ['lobby', 'online', 'netover', 'netMenu'].forEach(id => $(id).hidden = true);
+  $('netHud').hidden = true; $('feed').innerHTML = '';
+  if (online() || wasMatch){ mode = 'free'; side = S.side === 'field' ? 'field' : 'build'; showMenu(); }
+  if (reason) netToast(reason);
+}
+function netSend(d, to){ if (NET) NET.t.send(d, to); }
+function netSendAll(d){ if (NET) NET.t.send(d); }
+function netOnJoin(id){ if (!NET) return; if (!NET.host) netSend({t:'hello', name:myName()}, id); }
+function netOnLeave(id){
+  if (!NET) return;
+  if (!NET.host){ if (id === NET.hostId) netLeave('The host left, so the room closed.'); return; }
+  const p = NET.players.find(q => q.id === id); if (!p) return;
+  NET.players = NET.players.filter(q => q !== p); delete NET.inputs[id];
+  if (NET.match){
+    for (const c of builders.concat(fielders)) if (c.human === id){ c.human = null; }
+    if (NET.smasher === id) NET.smasher = null;
+    netFx({k:'feed', text:p.name + ' left · a bot took over'}); netSendAll({t:'players', players:NET.players});
+  } else netBroadcastLobby();
+}
+function netOnMsg(m, from){
+  if (!NET || !m || !m.t) return;
+  if (NET.host){
+    const p = NET.players.find(q => q.id === from);
+    if (m.t === 'hello'){
+      if (p) { netBroadcastLobby(); return; }
+      if (NET.match){ netSend({t:'reject', why:'That match has already started. Ask the host for a rematch.'}, from); return; }
+      if (NET.players.length >= 8){ netSend({t:'reject', why:'That room is full (8 players).'}, from); return; }
+      const n0 = NET.players.filter(q => q.team === 0).length, n1 = NET.players.length - n0;
+      NET.players.push({id:from, name:String(m.name || 'Player').slice(0, 12), team:n1 < n0 ? 1 : 0});
+      netBroadcastLobby(); return;
+    }
+    if (!p) return;
+    if (m.t === 'team' && !NET.match){ const t = m.team ? 1 : 0; if (NET.players.filter(q => q.team === t).length < 4){ p.team = t; netBroadcastLobby(); } return; }
+    if (m.t === 'in'){ NET.inputs[from] = {at:performance.now(), mx:clamp(+m.mx || 0, -1, 1), mz:clamp(+m.mz || 0, -1, 1), aim:m.aim && isFinite(m.aim[0]) ? {x:m.aim[0], z:m.aim[1]} : null}; return; }
+    if (m.t === 'ev'){ netHandleEvent(from, m); return; }
+    return;
+  }
+  // ---- guest ----
+  if (m.t === 'lobby'){ NET.hostId = from; NET.players = m.players; NET.stack = m.stack; if (!NET.match){ netShowLobby(); } return; }
+  if (from !== NET.hostId) return;
+  if (m.t === 'reject'){ netLeave(); netOpenScreen(); netOnlineStatus(m.why, true); return; }
+  if (m.t === 'bye'){ netLeave('The host closed the room.'); return; }
+  if (m.t === 'start'){ NET.players = m.players; netBeginMatch(m.seed, m.stack); return; }
+  if (m.t === 'round'){ netApplyRound(m); return; }
+  if (m.t === 'players'){ NET.players = m.players; return; }
+  if (m.t === 's'){ NET.snap = m; NET.lastSnap = performance.now(); if (m.fx) m.fx.forEach(netPlayFx); netApplySnapTargets(m); return; }
+  if (m.t === 'end'){ netShowResults(m); return; }
+}
+function netBroadcastLobby(){ if (!NET || !NET.host) return; netSendAll({t:'lobby', players:NET.players, stack:S.stack || 7}); netShowLobby(); }
+
+/* ---- match start / rounds (host decides, guests mirror) ---- */
+function netStartMatch(){
+  if (!NET || !NET.host) return;
+  const seed = (Date.now() ^ (Math.random()*1e9)) >>> 0, stack = S.stack || 7;
+  netSendAll({t:'start', seed, stack, players:NET.players});
+  netBeginMatch(seed, stack);
+}
+function netBeginMatch(seed, stack){
+  NET.match = true; NET.teamScore = [0, 0]; NET.roundDone = -1; NET.stats = {}; NET.players.forEach(p => NET.stats[p.id] = {st:0, hit:0, out:0});
+  if (!NET.saveLoad) NET.saveLoad = S.loadout; S.loadout = 'tennis';
+  ensureAudio(); tut = null; $('coach').hidden = true;
+  mode = 'online'; side = 'field'; outs = 0; aim = null; bMood = 0; lucky = 0; paused = false; medals = []; medalKanche = 0; banked = true; par = null; slowT = 0;
+  ['menu', 'over', 'lobby', 'online', 'netover', 'netMenu', 'pause', 'how'].forEach(id => $(id).hidden = true);
+  $('hud').hidden = false; $('netHud').hidden = false; $('pauseBtn').hidden = false; $('feed').innerHTML = ''; $('banner').hidden = true;
+  runRng = mulberry(seed ^ 0x5bd1e995);
+  if (ballBody){ world.removeBody(ballBody); ballBody = null; }
+  buildProps(mulberry(seed)); makeStack(stack); colorStones(); setBallLook();
+  round = 1; score = 0; runStones = 0; killer = null;
+  if (NET.host){ startSmash(); }
+  else { buildStackPhysics(); clearStoneBodies(); phase = 'smash'; camMode = 'smash'; hideBuilders(); player.mesh.visible = true; NET.lastSnap = performance.now(); }
+}
+function setLabel(ch, text, color){
+  if (ch.label && ch.label.userData.text === text && ch.label.userData.col === color) return;
+  const vis = ch.label ? ch.label.visible : true, op = ch.label ? ch.label.material.opacity : 1;
+  if (ch.label){ ch.mesh.remove(ch.label); ch.label.material.map.dispose(); ch.label.material.dispose(); }
+  ch.label = nameSprite(text, color); ch.label.userData.text = text; ch.label.userData.col = color; ch.label.visible = vis; ch.label.material.opacity = op; ch.mesh.add(ch.label);
+}
+function pName(id){ const p = NET && NET.players.find(q => q.id === id); return p ? p.name : ''; }
+function netAssignRound(){
+  // the building team swaps every round: Team Gilli builds in odd rounds, Team Danda in even ones
+  NET.buildTeam = round % 2 === 1 ? 0 : 1;
+  const bt = NET.players.filter(p => p.team === NET.buildTeam), ft = NET.players.filter(p => p.team !== NET.buildTeam);
+  NET.assign = {b:builders.map((b, k) => bt[k] ? bt[k].id : null), f:fielders.map((f, k) => ft[k] ? ft[k].id : null)};
+  NET.smasher = NET.assign.b.find(Boolean) || null;
+  const msg = {t:'round', round, buildTeam:NET.buildTeam, assign:NET.assign, smasher:NET.smasher, score:NET.teamScore, players:NET.players};
+  netSendAll(msg); netApplyRound(msg);
+}
+function netApplyRound(m){
+  NET.buildTeam = m.buildTeam; NET.assign = m.assign; NET.smasher = m.smasher; NET.teamScore = m.score; if (m.players) NET.players = m.players;
+  if (!NET.host) round = m.round;
+  builders.forEach((b, k) => { const id = m.assign.b[k]; b.human = id || null; b.name = id ? pName(id) : BOT_B[k]; setLabel(b, b.name, id === NET.me ? 0x0F766E : 0xC2410C); });
+  fielders.forEach((f, k) => { const id = m.assign.f[k]; f.human = id || null; f.name = id ? pName(id) : BOT_F[k]; setLabel(f, f.name, id === NET.me ? 0x0F766E : 0x1F4E8F); });
+  setLabel(player, m.smasher ? pName(m.smasher) : 'Kabir', m.smasher === NET.me ? 0x0F766E : 0xC2410C);
+  builders.forEach(b => { b.out = false; b.mesh.rotation.z = 0; b.mesh.position.y = 0; b.label.material.opacity = 1; });
+}
+function myRole(){
+  if (!NET) return null;
+  const bi = NET.assign.b.indexOf(NET.me); if (bi >= 0) return {role:'build', ch:builders[bi], i:bi};
+  const fi = NET.assign.f.indexOf(NET.me); if (fi >= 0) return {role:'field', ch:fielders[fi], i:fi};
+  return null;
+}
+function netSmasher(){ return !!(NET && NET.smasher && (NET.smasher === NET.me || NET.players.some(p => p.id === NET.smasher))); }
+function netAfterStartSmash(){
+  const b = TEAM_NAMES[NET.buildTeam], f = TEAM_NAMES[1 - NET.buildTeam];
+  banner('Round ' + round, b + ' smash · ' + f + ' defend', 1.8);
+  player.label.visible = false;
+  if (round === 1) netFx({k:'feed', text:'First to ' + WIN_ROUNDS + ' rounds wins'});
+}
+function netAfterStartRebuild(){
+  builders.forEach(b => { b.dashT = 0; b.dashCd = 0; b.setT = 0; });
+  fielders.forEach(f => { if (f.human) { f.state = 'move'; f.vx = f.vz = 0; } });
+  player.label.visible = false;
+  banner('Rebuild!', TEAM_NAMES[NET.buildTeam] + ' rebuild · ' + TEAM_NAMES[1 - NET.buildTeam] + ' hit them', 1.6);
+}
+function netRoundWon(role, why){
+  if (!NET || !NET.host || NET.roundDone === round) return;
+  NET.roundDone = round;
+  const team = role === 'build' ? NET.buildTeam : 1 - NET.buildTeam;
+  NET.teamScore[team]++;
+  netFx({k:'feed', text:TEAM_NAMES[team] + ' win round ' + round + (why ? ' · ' + why : ''), cls:'gold'});
+}
+function netBuildersWin(b){
+  if (phase !== 'rebuild') return;
+  sfx.pittu(); shake(0.25);
+  banner('PITTU!', b.name + ' finished the stack · ' + TEAM_NAMES[NET.buildTeam] + ' win the round', 2.1);
+  netRoundWon('build', 'stack rebuilt');
+  phase = 'pittu'; phaseT = 0; danger.visible = false; marker.visible = false; arrow.visible = false;
+  fielders.forEach(f => { f.tele.visible = false; f.ring.visible = false; }); ball = {state:'none'}; ballMesh.visible = false;
+}
+function netMatchOver(){
+  const won = NET.teamScore.findIndex(s => s >= WIN_ROUNDS);
+  if (won < 0) return false;
+  const m = {t:'end', winner:won, score:NET.teamScore, stats:NET.stats, players:NET.players};
+  netSendAll(m); netShowResults(m); return true;
+}
+
+/* ---- host: humans plugged into the simulation ---- */
+function netInput(id){ if (id === NET.me) return NET.local; const i = NET.inputs[id]; return i && performance.now() - i.at < 1000 ? i : {mx:0, mz:0, aim:null}; }
+function netPreSim(){
+  const h = ball.state === 'held' ? ball.holder : null, inp = h && h.human ? netInput(h.human) : null;
+  aim = inp && inp.aim && h.cd <= 0 ? {pt:inp.aim} : null;   // the bots read the human thrower's aim, as in solo
+}
+function drawTele(f, pt){
+  const ax = pt.x - f.x, az = pt.z - f.z, mate = mateAt(pt, f), al = Math.hypot(ax, az) || 1, len = mate ? al : AIM_LEN;
+  f.tele.visible = true; f.tele.position.set(f.x, 0.03, f.z); f.tele.rotation.y = -Math.atan2(az, ax); f.tele.scale.set(len, 1, mate ? 0.25 : 0.22);
+  f.tele.material.color.setHex(mate ? 0xF2A81D : (f.cd > 0 ? 0x8A8CB8 : 0xE0331F)); f.tele.material.opacity = 0.45;
+  if (!mate){ aimHead.visible = true; aimHead.position.set(f.x + ax/al*len, 0.035, f.z + az/al*len); aimHead.rotation.y = -Math.atan2(az, ax); aimHead.material.color.setHex(f.cd > 0 ? 0x8A8CB8 : 0xE0331F); }
+  f.mesh.rotation.y = Math.atan2(ax, az);
+}
+function netFielder(f, dt, holder, alive){
+  if (f.human){
+    const inp = netInput(f.human);
+    if (f === holder){
+      // holding the ball roots you to the spot: aim, throw or pass
+      f.vx = f.vz = 0;
+      if (inp.aim) drawTele(f, inp.aim);
+      setRing(f, f.cd > 0 ? 1 - f.cd/f.reload : 1, f.cd > 0 ? 0xFFF7E6 : 0x2A8C84, 1);
+      return true;
+    }
+    let mx = inp.mx, mz = inp.mz; const len = Math.hypot(mx, mz); if (len > 1){ mx /= len; mz /= len; }
+    const k = 1 - Math.exp(-dt*14), sp = 6.1;
+    f.vx = lerp(f.vx || 0, mx*sp, k); f.vz = lerp(f.vz || 0, mz*sp, k);
+    f.x += f.vx*dt; f.z += f.vz*dt;
+    for (const o of fielders){ if (o === f || !o.active) continue; const ox = f.x-o.x, oz = f.z-o.z, od = Math.hypot(ox, oz); if (od < 1 && od > 0.001){ f.x += ox/od*(1-od)*0.5; f.z += oz/od*(1-od)*0.5; } }
+    pushOut(f, 0.45);
+    const fetching = ball.state === 'loose' && Math.hypot(ball.x, ball.z) < DANGER_R + 1.2;
+    if (Math.hypot(f.x, f.z) < DANGER_R && !fetching){ const r = Math.hypot(f.x, f.z) || 1; f.x = f.x/r*DANGER_R; f.z = f.z/r*DANGER_R; }
+    if (Math.hypot(f.vx, f.vz) > 0.5) f.mesh.rotation.y = Math.atan2(f.vx, f.vz);
+    if (ball.state === 'loose' && Math.hypot(f.x - ball.x, f.z - ball.z) < 0.8){ ball = {state:'held', holder:f, x:f.x, z:f.z, y:1.1}; f.holdT = 0; }
+    setRing(f, f.cd > 0 ? 1 - f.cd/f.reload : 1, f.cd > 0 ? 0xFFF7E6 : 0x8EC5FF, f.cd > 0 ? 0.75 : 0.6);
+    return true;
+  }
+  if (f === holder){ netBotHolder(f, dt, alive); return true; }
+  return false;
+}
+function netBotHolder(f, dt, alive){
+  f.holdT = (f.holdT || 0) + dt;
+  let tgt = null, bd = 1e9;
+  for (const b of alive){ const d = Math.hypot(b.x - f.x, b.z - f.z) + (los(f.x, f.z, b.x, b.z) ? 0 : 40); if (d < bd){ bd = d; tgt = b; } }
+  if (tgt) f.mesh.rotation.y = Math.atan2(tgt.x - f.x, tgt.z - f.z);
+  setRing(f, f.cd > 0 ? 1 - f.cd/f.reload : 1, f.cd > 0 ? 0xFFF7E6 : 0x8EC5FF, 0.75);
+  if (f.cd > 0 || rebuildT < 1.6 || f.holdT < 0.6 || !tgt) return;
+  const seen = bd < 40, d = Math.hypot(tgt.x - f.x, tgt.z - f.z);
+  if (seen && d < 19){
+    const t = d/23, err = (Math.random() - 0.5)*Math.max(0.5, 1.6 - 0.12*round);
+    say(f, 'windup', 0.3);
+    fieldThrow(f, tgt.x + tgt.vx*t*0.85 + err, tgt.z + tgt.vz*t*0.85 + err*0.6); f.holdT = 0; return;
+  }
+  if (f.holdT > 1.1){
+    let mate = null, md = 1e9;
+    for (const m of fielders){ if (!m.active || m === f || m.cd > 0.3) continue; const sees = alive.some(b => los(m.x, m.z, b.x, b.z)); const dd = Math.hypot(m.x - f.x, m.z - f.z) - (sees ? 12 : 0) - (m.human ? 3 : 0); if (dd < md){ md = dd; mate = m; } }
+    if (mate){ say(f, 'pass', 0.3); passTo(f, mate); }
+  }
+}
+function netBuilderHuman(b, dt, n, nn){
+  const inp = netInput(b.human);
+  b.dashCd = Math.max(0, (b.dashCd || 0) - dt); b.dashT = Math.max(0, (b.dashT || 0) - dt);
+  let mx = inp.mx, mz = inp.mz; const len = Math.hypot(mx, mz); if (len > 1){ mx /= len; mz /= len; }
+  const carryF = b.carry ? 0.72 + 0.04*b.carry.i : 1, sp = 6.3*carryF*(b.dashT > 0 ? 2.7 : 1);
+  let dx = mx, dz = mz; if (b.dashT > 0 && len < 0.1){ dx = Math.sin(b.face); dz = Math.cos(b.face); }
+  const k = 1 - Math.exp(-dt*14); b.vx = lerp(b.vx, dx*sp, k); b.vz = lerp(b.vz, dz*sp, k);
+  b.x += b.vx*dt; b.z += b.vz*dt;
+  for (const o of builders){ if (o === b || !o.active || o.out) continue; const ox = b.x-o.x, oz = b.z-o.z, od = Math.hypot(ox, oz); if (od < 0.9 && od > 0.001){ b.x += ox/od*(0.9-od)*0.5; b.z += oz/od*(0.9-od)*0.5; } }
+  pushOut(b, 0.45);
+  if (Math.hypot(b.vx, b.vz) > 0.5) b.face = Math.atan2(b.vx, b.vz);
+  b.mesh.position.set(b.x, 0, b.z); b.mesh.rotation.y = b.face; b.mesh.userData.body.scale.y = b.dashT > 0 ? 0.85 : 1;
+  b.dustT = (b.dustT || 0) - dt; if (Math.hypot(b.vx, b.vz) > 4 && b.dustT <= 0){ puff(b.x, 0.1, b.z, 1, 0.45); b.dustT = 0.12; }
+  if (!b.carry){
+    // you can carry the next slab, or the one after it as a relay for your teammate
+    for (const st of [n, nn]){ if (st && freeStone(st.i) && Math.hypot(b.x - st.x, b.z - st.z) < 0.6 + st.w*0.45){ b.carry = st; sfx.pick(); break; } }
+  }
+  if (b.carry && b.carry === n && Math.hypot(b.x, b.z) < STACK_R){
+    b.setT = (b.setT || 0) + dt;
+    if (b.setT >= 0.3){
+      b.setT = 0; const st = b.carry; st.placed = true; b.carry = null; placed++; sfx.place(); bTeam.runner = null;
+      popAt(0, homeY(st.i) + 0.8, 0, stones.length - placed ? (stones.length - placed) + ' left' : 'Done!', 'gold');
+      if (NET.stats[b.human]) NET.stats[b.human].st++;
+      if (placed >= stones.length) builderWin(b);
+    }
+  } else b.setT = 0;
+}
+function netHandleEvent(id, ev){
+  if (!NET || !NET.match) return;
+  if (ev.e === 'lock'){ if (phase === 'smash' && NET.smasher === id) lockAim(); return; }
+  if (phase !== 'rebuild') return;
+  if (ev.e === 'dash'){
+    const b = builders.find(x => x.human === id && x.active && !x.out);
+    if (b && !(b.dashCd > 0)){ b.dashT = 0.2; b.dashCd = 1.6; sfx.dash(); puff(b.x, 0.2, b.z, 5, 0.7); }
+    return;
+  }
+  const f = fielders.find(x => x.human === id && x.active);
+  if (!f || ball.state !== 'held' || ball.holder !== f) return;
+  if (ev.e === 'throw' && isFinite(ev.x) && isFinite(ev.z)){
+    const pt = {x:+ev.x, z:+ev.z}, mate = mateAt(pt, f);
+    if (mate) passTo(f, mate); else { const before = ball; fieldThrow(f, pt.x, pt.z); if (ball !== before) ball.netBy = id; }
+  } else if (ev.e === 'pass'){ const m = fielders[ev.i | 0]; if (m && m.active && m !== f) passTo(f, m); }
+}
+function netLocalEvent(ev){ if (!NET || !NET.match) return; if (NET.host) netHandleEvent(NET.me, ev); else netSend(Object.assign({t:'ev'}, ev), NET.hostId); }
+
+/* ---- shared effects: the host plays them and forwards them inside the next snapshot ---- */
+function netFx(o){ if (NET && NET.host && NET.match){ NET.fx.push(o); if (o.k === 'feed') netPlayFx(o); } }
+function netPlayFx(o){
+  if (o.k === 'b') banner.raw(o.t, o.s, o.d);
+  else if (o.k === 'p') popAt.raw(o.x, o.y, o.z, o.text, o.cls);
+  else if (o.k === 'sh') shake.raw(o.a);
+  else if (o.k === 'pf') puff.raw(o.x, o.y, o.z, o.n, o.s);
+  else if (o.k === 'sfx'){ if (sfx[o.n] && sfx[o.n].raw) sfx[o.n].raw(); }
+  else if (o.k === 'say'){ const c = charById(o.who); if (c && c.mesh.visible) sayText(c, o.text); }
+  else if (o.k === 'feed') netFeed(o.text, o.cls);
+}
+function wrapFx(fn, make){ const w = function(){ fn.apply(null, arguments); const o = make.apply(null, arguments); if (o) netFx(o); }; w.raw = fn; return w; }
+banner = wrapFx(banner, (t, s, d) => ({k:'b', t, s, d}));
+popAt = wrapFx(popAt, (x, y, z, text, cls) => ({k:'p', x:r2(x), y:r2(y), z:r2(z), text, cls}));
+shake = wrapFx(shake, a => ({k:'sh', a}));
+puff = wrapFx(puff, (x, y, z, n, s) => n >= 3 ? {k:'pf', x:r2(x), y:r2(y), z:r2(z), n, s} : null);
+Object.keys(sfx).forEach(k => { if (typeof sfx[k] === 'function') sfx[k] = wrapFx(sfx[k], () => ({k:'sfx', n:k})); });
+builderOut = (function(orig){
+  return function(b){
+    const th = ball && ball.thrower, by = ball && ball.netBy;
+    orig(b);
+    if (!online() || !NET || !NET.host) return;
+    if (by && NET.stats[by]) NET.stats[by].hit++;
+    if (b.human && NET.stats[b.human]) NET.stats[b.human].out++;
+    netFx({k:'feed', text:(th ? th.name : 'Fielders') + ' hit ' + b.name, cls:'red'});
+  };
+})(builderOut);
+
+/* ---- snapshots ---- */
+function netSnapshot(){
+  const sm = phase === 'smash' || phase === 'smashWatch' || phase === 'settle';
+  const h = ball.state === 'held' ? fielders.indexOf(ball.holder) : -1, hInp = h >= 0 && ball.holder.human ? netInput(ball.holder.human) : null;
+  return {t:'s', ph:phase, r:round, tl:throwsLeft, pl:placed, rt:r2(rebuildT), par, wx:r2(windX || 0), sc:NET.teamScore, bt:NET.buildTeam,
+    aim:phase === 'smash' ? [r3(aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : lockedYaw), aimStage === 'dir' ? 0 : 1, r2(aimStage === 'dir' ? 0.55 : powerAt(aimT)), ballReady ? 1 : 0] : null,
+    B:builders.map(b => [r2(b.x), r2(b.z), r2(b.face), (b.active ? 1 : 0) | (b.out ? 2 : 0) | (b.mesh.visible ? 4 : 0) | (b.dashT > 0 ? 8 : 0), b.carry ? b.carry.i : -1]),
+    F:fielders.map(f => [r2(f.x), r2(f.z), r2(f.mesh.rotation.y), (f.active ? 1 : 0) | (f.mesh.visible ? 4 : 0), r2(f.cd > 0 ? 1 - f.cd/f.reload : 1)]),
+    P:[r2(player.mesh.position.x), r2(player.mesh.position.z), r2(player.mesh.rotation.y), player.mesh.visible ? 1 : 0],
+    St:stones.map(s => { const p = s.mesh.position, q = s.mesh.quaternion; return [r2(p.x), r2(p.y), r2(p.z), r3(q.x), r3(q.y), r3(q.z), r3(q.w), s.placed ? 1 : 0, r2(s.x || 0), r2(s.z || 0)]; }),
+    bl:ballMesh.visible && ball.state !== 'none' || (sm && ballMesh.visible) ? [r2(ballMesh.position.x), r2(ballMesh.position.y), r2(ballMesh.position.z), ball.state === 'held' ? 1 : ball.state === 'loose' ? 2 : ball.state === 'flight' ? 3 : 0, h] : null,
+    ha:hInp && hInp.aim && phase === 'rebuild' ? [r2(hInp.aim.x), r2(hInp.aim.z)] : null,
+    pr:props.map(p => p.alive ? 1 : 0).join(''),
+    fx:NET.fx.splice(0)};
+}
+function netApplySnapTargets(m){
+  // characters, stones and the ball ease toward these every frame
+  m.B.forEach((a, k) => { const b = builders[k]; b.tgt = a; });
+  m.F.forEach((a, k) => { const f = fielders[k]; f.tgt = a; });
+}
+function netGuestFrame(rdt, now){
+  const m = NET.snap, k = 1 - Math.exp(-rdt*14), kq = 1 - Math.exp(-rdt*18);
+  if (bannerTimer > 0){ bannerTimer -= rdt; if (bannerTimer <= 0) $('banner').hidden = true; }
+  if (m){
+    if (phase !== m.ph){
+      if (m.ph === 'smash' && phase !== 'smash'){ stones.forEach(s => { s.placed = true; }); builders.forEach(b => { b.out = false; b.mesh.rotation.z = 0; b.mesh.position.y = 0; b.label.material.opacity = 1; }); }
+      if (m.ph === 'rebuild'){ rebuildT = m.rt; }
+    }
+    phase = m.ph; round = m.r; throwsLeft = m.tl; placed = m.pl; par = m.par; windX = m.wx; NET.teamScore = m.sc; NET.buildTeam = m.bt;
+    rebuildT = phase === 'rebuild' ? Math.max(m.rt, Math.min(m.rt + 0.3, rebuildT + rdt)) : m.rt;
+    camMode = phase === 'netover' ? 'menu' : (phase === 'smash' || phase === 'smashWatch' || phase === 'settle') ? 'smash' : 'rebuild';
+    m.B.forEach((a, i) => {
+      const b = builders[i], fl = a[3];
+      b.active = !!(fl & 1); b.mesh.visible = !!(fl & 4);
+      const wasOut = b.out; b.out = !!(fl & 2);
+      b.x = lerp(b.x, a[0], k); b.z = lerp(b.z, a[1], k); b.face = lerpAngle(b.face, a[2], k);
+      b.vx = (a[0] - b.x)*6; b.vz = (a[1] - b.z)*6;
+      b.carry = a[4] >= 0 ? stones[a[4]] : null;
+      b.mesh.position.x = b.x; b.mesh.position.z = b.z; b.mesh.rotation.y = b.face;
+      if (b.out){ b.mesh.rotation.z = Math.PI/2; b.mesh.position.y = 0.3; b.label.material.opacity = 0.35; }
+      else if (wasOut){ b.mesh.rotation.z = 0; b.mesh.position.y = 0; b.label.material.opacity = 1; }
+      b.mesh.userData.body.scale.y = fl & 8 ? 0.85 : 1;
+    });
+    m.F.forEach((a, i) => {
+      const f = fielders[i], fl = a[3], u = f.mesh.userData;
+      f.active = !!(fl & 1); f.mesh.visible = !!(fl & 4);
+      f.x = lerp(f.x, a[0], k); f.z = lerp(f.z, a[1], k);
+      f.mesh.position.set(f.x, 0, f.z); f.mesh.rotation.y = lerpAngle(f.mesh.rotation.y, a[2], k);
+      const frac = a[4]; if (frac < 0.2 && (f.lastFrac === undefined || f.lastFrac > 0.9)) u.throwT = 0.3; f.lastFrac = frac;
+      f.cd = frac < 1 ? 1 - frac : 0; f.reload = 1; u.lastCd = f.cd;
+      f.tele.visible = false;
+      if (phase === 'rebuild' && f.active){ const mine = myRole() && myRole().ch === f; setRing(f, frac, frac < 1 ? 0xFFF7E6 : (mine ? 0x2A8C84 : 0x8EC5FF), frac < 1 ? 0.75 : 0.7); f.ring.visible = true; }
+      else f.ring.visible = false;
+    });
+    const P = m.P; player.mesh.visible = !!P[3];
+    player.mesh.position.x = lerp(player.mesh.position.x, P[0], k); player.mesh.position.z = lerp(player.mesh.position.z, P[1], k); player.mesh.rotation.y = P[2];
+    player.x = player.mesh.position.x; player.z = player.mesh.position.z;
+    m.St.forEach((a, i) => {
+      const s = stones[i]; if (!s) return;
+      s.mesh.position.lerp(tmpV.set(a[0], a[1], a[2]), kq);
+      s.mesh.quaternion.slerp(netQ.set(a[3], a[4], a[5], a[6]), kq);
+      s.placed = !!a[7]; s.x = a[8]; s.z = a[9];
+    });
+    if (m.bl){
+      ballMesh.visible = true; ballMesh.position.lerp(tmpV.set(m.bl[0], m.bl[1], m.bl[2]), m.bl[3] === 3 ? 1 - Math.exp(-rdt*30) : k);
+      const st = ['none', 'held', 'loose', 'flight'][m.bl[3]];
+      ball = st === 'held' && m.bl[4] >= 0 ? {state:'held', holder:fielders[m.bl[4]], x:ballMesh.position.x, z:ballMesh.position.z, y:ballMesh.position.y} : {state:st === 'none' ? 'pass' : st, x:ballMesh.position.x, z:ballMesh.position.z, y:ballMesh.position.y};
+    } else { ballMesh.visible = false; ball = {state:'none'}; }
+    if (m.ha && ball.state === 'held') drawTele(ball.holder, {x:m.ha[0], z:m.ha[1]}); else aimHead.visible = false;
+    props.forEach((p, i) => { if (m.pr[i] === '0' && p.alive){ p.alive = false; p.dying = 0.35; } });
+    danger.visible = phase === 'rebuild';
+    const n = stones[placed];
+    if (n && phase === 'rebuild'){
+      const t = now/1000, c = builders.find(b => b.active && !b.out && b.carry === n);
+      marker.visible = arrow.visible = true;
+      if (c){ marker.position.set(0, 0.03, 0); marker.scale.setScalar(STACK_R/0.95*(1 + Math.sin(t*6)*0.04)); arrow.position.set(0, homeY(placed) + 1.2 + Math.sin(t*4)*0.15, 0); }
+      else { marker.position.set(n.x, 0.03, n.z); marker.scale.setScalar(n.w*0.75*(1 + Math.sin(t*6)*0.06)); arrow.position.set(n.x, 1.3 + Math.sin(t*4)*0.18, n.z); }
+      arrow.rotation.y = t*2;
+    } else marker.visible = arrow.visible = false;
+    if (m.aim && m.aim[3] && phase === 'smash'){
+      const mine = NET.smasher === NET.me;
+      setAimLine(m.aim[0], m.aim[1] ? 0xF2A81D : Math.abs(m.aim[0]) < 0.03 ? 0xF2A81D : 0xFFF7E6);
+      showPreview(m.aim[0], m.aim[2], !!(m.aim[1] && mine)); aimStage = m.aim[1] ? 'power' : 'dir'; ballReady = true;
+    } else { hidePreview(); ballReady = false; }
+  }
+  if (performance.now() - NET.lastSnap > 2500) netHint('Waiting for the host… (their game tab has to stay open)');
+  updateProps(rdt); updatePuffs(rdt); updateBubbles(rdt); animateWorld(now/1000, rdt); animatePeople(rdt);
+  updateCamera(rdt);
+  if (phase !== 'menu' && phase !== 'netover') updateHud();
+  updateTimer(); netAfterFrame(rdt);
+  renderer.render(scene, camera);
+}
+const netQ = new THREE.Quaternion();
+
+/* ---- every frame, host and guests: local input, sending, HUD ---- */
+function netTick(rdt){
+  if (!NET) return;
+  if (!NET.host && !NET.hostId && NET.joinT && performance.now() - NET.joinT > 15000){
+    netLeave(); netOpenScreen(); netOnlineStatus('No room found for that code. Check it, and make sure the host still has the room open.', true); return;
+  }
+  if (!NET.match) return;
+  let mx = 0, mz = 0;
+  if (keys.KeyA || keys.ArrowLeft) mx -= 1; if (keys.KeyD || keys.ArrowRight) mx += 1;
+  if (keys.KeyW || keys.ArrowUp) mz -= 1; if (keys.KeyS || keys.ArrowDown) mz += 1;
+  if (joy && joy.active){ mx += joy.vx; mz += joy.vy; }
+  const menuOpen = !$('netMenu').hidden;
+  NET.local = {mx:menuOpen ? 0 : clamp(mx, -1, 1), mz:menuOpen ? 0 : clamp(mz, -1, 1), aim:NET.aimPtr && NET.aimPtr.pt ? {x:NET.aimPtr.pt.x, z:NET.aimPtr.pt.z} : null};
+  NET.sendT += rdt;
+  if (NET.sendT >= 1/NET_HZ){
+    NET.sendT = 0;
+    if (NET.host){ if (NET.players.length > 1 || NET.fx.length) netSendAll(netSnapshot()); else NET.fx.length = 0; }
+    else netSend({t:'in', mx:r2(NET.local.mx), mz:r2(NET.local.mz), aim:NET.local.aim ? [r2(NET.local.aim.x), r2(NET.local.aim.z)] : null}, NET.hostId);
+  }
+}
+function netFollow(){
+  const me = myRole();
+  if (me && !(me.role === 'build' && me.ch.out) && me.ch.active) return {x:me.ch.x, z:me.ch.z};
+  const h = ball.state === 'held' ? ball.holder : null;
+  return h ? {x:h.x*0.6, z:h.z*0.6} : {x:(ball.x || 0)*0.5, z:(ball.z || 0)*0.5};
+}
+function iHoldBall(){ const me = myRole(); return !!(me && me.role === 'field' && ball.state === 'held' && ball.holder === me.ch); }
+function netAfterFrame(){
+  if (!NET || !NET.match) return;
+  const me = myRole(), sm = phase === 'smash' || phase === 'smashWatch' || phase === 'settle';
+  // scoreboard
+  const sc = NET.teamScore, bt = NET.buildTeam;
+  $('nsA').textContent = sc[0]; $('nsB').textContent = sc[1];
+  $('nsRound').textContent = 'Round ' + round;
+  $('ntA').classList.toggle('building', bt === 0); $('ntB').classList.toggle('building', bt === 1);
+  $('nrA').textContent = bt === 0 ? 'Builders' : 'Fielders'; $('nrB').textContent = bt === 1 ? 'Builders' : 'Fielders';
+  const myTeam = (NET.players.find(p => p.id === NET.me) || {}).team;
+  $('ntA').classList.toggle('mine', myTeam === 0); $('ntB').classList.toggle('mine', myTeam === 1);
+  const roleTxt = !me ? 'Spectating' : me.role === 'build' ? (me.ch.out ? 'You are out' : 'You · Builder') : (iHoldBall() ? 'You · Fielder · ball in hand' : 'You · Fielder');
+  $('nRole').textContent = roleTxt; $('nRole').className = 'nrole ' + (me ? me.role : '');
+  // the HUD from solo, relabelled
+  $('throwsLabel').textContent = 'Throws left'; $('stackLabel').textContent = 'Stack';
+  $('hudRound').textContent = TEAM_NAMES[bt] + ' building'; $('hudScore').textContent = (stones.length - placed) + ' to go';
+  $('tags').innerHTML = '';
+  $('timeLabel').textContent = 'Round time';
+  // you marker
+  if (me && phase === 'rebuild' && me.ch.active && !(me.role === 'build' && me.ch.out)){ youMark.visible = true; youMark.position.set(me.ch.x, 2.95 + Math.sin(performance.now()/180)*0.1, me.ch.z); }
+  else youMark.visible = false;
+  if (sm) player.label.visible = false;
+  $('power').hidden = !(phase === 'smash' && NET.smasher === NET.me && aimStage === 'power' && ballReady);
+  $('netHud').classList.toggle('lift', !$('power').hidden);
+  document.body.classList.add('net');
+  $('dashBtn').hidden = !(isTouch && phase === 'rebuild' && me && me.role === 'build' && !me.ch.out);
+  // a hint written for this player's role
+  let h = '';
+  if (phase === 'smash'){
+    if (NET.smasher === NET.me) h = isTouch ? 'Your throw! Tap when the line points at the stack, then tap for power.' : 'You throw for your team. Click or press Space when the line points at the stack, then again for power.';
+    else if (me && me.role === 'build') h = (pName(NET.smasher) || 'Kabir') + ' is smashing for your team. Get ready to run.';
+    else h = 'Defend! If the stack survives all 3 throws, your team wins the round.';
+  } else if (phase === 'rebuild' && me){
+    if (me.role === 'build') h = me.ch.out ? 'You are out. Cheer on your team.' : isTouch ? 'Left thumb moves · DASH dodges · carry the glowing slab home' : 'WASD or arrows move · Space dashes · carry the glowing slab to the stack';
+    else if (iHoldBall()) h = isTouch ? 'Ball in hand, you are rooted. Drag to aim, release to throw, or release on a teammate to pass.' : 'You have the ball, so you are rooted. Drag to aim, release to throw · release on a teammate or press 1–4 to pass';
+    else h = ball.state === 'loose' ? 'Loose ball! Run over it to pick it up.' : isTouch ? 'Left thumb moves. Find an angle on the builders.' : 'WASD or arrows move. Find an angle on the builders.';
+  }
+  netHint(h);
+}
+function netFeed(text, cls){
+  const f = $('feed'), d = document.createElement('div'); d.className = 'fi' + (cls ? ' ' + cls : ''); d.textContent = text;
+  f.prepend(d); while (f.childElementCount > 4) f.lastChild.remove();
+  setTimeout(() => { d.classList.add('gone'); setTimeout(() => d.remove(), 600); }, 4200);
+}
+function netToast(t){ const el = $('netToast'); el.textContent = t; el.hidden = false; clearTimeout(netToast.tm); netToast.tm = setTimeout(() => el.hidden = true, 4200); }
+
+/* ---- online input ---- */
+function netPointerDown(e){
+  if (!NET || !NET.match || !$('netMenu').hidden) return;
+  const me = myRole();
+  if (phase === 'smash' && NET.smasher === NET.me){ netLocalEvent({e:'lock'}); return; }
+  if (phase !== 'rebuild' || !me) return;
+  if (iHoldBall()){ NET.aimPtr = {id:e.pointerId, pt:groundAt(e.clientX, e.clientY)}; canvas.setPointerCapture(e.pointerId); return; }
+  if (e.pointerType !== 'mouse' && !joy && e.clientX < innerWidth*0.62){
+    joy = {id:e.pointerId, ox:e.clientX, oy:e.clientY, vx:0, vy:0, active:true};
+    const j = $('joy'); j.style.left = e.clientX + 'px'; j.style.top = e.clientY + 'px'; j.hidden = false; $('knob').style.transform = '';
+    canvas.setPointerCapture(e.pointerId);
+  }
+}
+function netPointerMove(e){
+  if (!NET) return;
+  if (NET.aimPtr && e.pointerId === NET.aimPtr.id){ NET.aimPtr.pt = groundAt(e.clientX, e.clientY); return; }
+  if (joy && e.pointerId === joy.id){
+    let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const d = Math.hypot(dx, dy), max = 50;
+    if (d > max){ dx = dx/d*max; dy = dy/d*max; }
+    joy.vx = dx/max; joy.vy = dy/max; $('knob').style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+  }
+}
+function netPointerUp(e){
+  if (!NET) return;
+  if (NET.aimPtr && e.pointerId === NET.aimPtr.id){
+    const a = NET.aimPtr; NET.aimPtr = null;
+    if (e.type === 'pointerup' && a.pt && iHoldBall()) netLocalEvent({e:'throw', x:r2(a.pt.x), z:r2(a.pt.z)});
+    return;
+  }
+  if (joy && e.pointerId === joy.id){ joy = null; $('joy').hidden = true; }
+}
+function netKeyDown(e){
+  if (!NET) return false;
+  if (e.code === 'Escape'){
+    if (!$('netMenu').hidden){ netMenuToggle(false); return true; }
+    if (NET.match && phase !== 'netover'){ netMenuToggle(true); return true; }
+    return false;
+  }
+  if (!NET.match) return false;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+  if (e.repeat && (e.code === 'Space' || e.code === 'Enter' || e.code.startsWith('Shift'))) return true;
+  if (e.code === 'Space' || e.code === 'Enter'){
+    if (phase === 'smash') netLocalEvent({e:'lock'}); else if (phase === 'rebuild') netLocalEvent({e:'dash'});
+    return true;
+  }
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight'){ netLocalEvent({e:'dash'}); return true; }
+  if (/^Digit[1-4]$/.test(e.code)){ if (iHoldBall()) netLocalEvent({e:'pass', i:+e.code.slice(5) - 1}); return true; }
+  if (e.code === 'KeyP') return true;
+  return false;
+}
+function netMenuToggle(show){
+  if (!NET || !NET.match || document.hidden) return;
+  $('netMenu').hidden = !show;
+  if (show){ $('nmTitle').textContent = 'Room ' + NET.code; $('nmLeave').querySelector('.bs').textContent = NET.host ? 'Ends the match for everyone' : 'A bot takes your place'; keys = {}; joy = null; $('joy').hidden = true; NET.aimPtr = null; $('nmResume').focus({preventScroll:true}); }
+}
+
+/* ---- screens: online entry, lobby, results ---- */
+function netOpenScreen(prefill){
+  $('menu').hidden = true; $('online').hidden = false; $('lobby').hidden = true;
+  $('netName').value = S.netName || ''; if (prefill) $('netCode').value = prefill;
+  netOnlineStatus('', false); setTimeout(() => (S.netName ? (prefill ? $('netJoin') : $('netCreate')) : $('netName')).focus({preventScroll:true}), 30);
+}
+function netOnlineStatus(t, bad){ const el = $('netStatus'); el.textContent = t; el.hidden = !t; el.classList.toggle('bad', !!bad); }
+function netSaveName(){ const v = $('netName').value.trim().slice(0, 12); if (!v){ netOnlineStatus('Type a name first, so your team knows who you are.', true); $('netName').focus(); return false; } S.netName = v; persist(); return true; }
+function netShowLobby(){
+  if (!NET) return;
+  $('menu').hidden = true; $('online').hidden = true; $('netover').hidden = true; $('lobby').hidden = false;
+  $('lbCode').textContent = NET.code; $('lbCodeBox').innerHTML = NET.code.split('').map(c => '<span>' + c + '</span>').join('');
+  const me = NET.players.find(p => p.id === NET.me);
+  for (const t of [0, 1]){
+    const col = $('lbTeam' + t), list = NET.players.filter(p => p.team === t);
+    col.querySelector('.tname').textContent = TEAM_NAMES[t];
+    col.querySelector('.tcount').textContent = list.length + ' / 4';
+    const slots = col.querySelector('.slots'); slots.innerHTML = '';
+    for (let i=0;i<4;i++){
+      const p = list[i], d = document.createElement('div');
+      d.className = 'slot' + (p ? ' filled' : '') + (p && p.id === NET.me ? ' me' : '');
+      d.innerHTML = p ? '<span class="av">' + escapeHtml(p.name.slice(0, 1).toUpperCase()) + '</span><span class="sn">' + escapeHtml(p.name) + '</span>' + (p.id === NET.hostId ? '<span class="sb host">Host</span>' : '') + (p.id === NET.me ? '<span class="sb you">You</span>' : '')
+                  : '<span class="av bot">B</span><span class="sn">Bot · ' + (t === 0 ? BOT_B[i] : BOT_F[i]) + '</span><span class="sb">Open</span>';
+      slots.appendChild(d);
+    }
+  }
+  const n = NET.players.length;
+  $('lbStatus').textContent = n + ' of 8 players · empty seats are played by bots · first to ' + WIN_ROUNDS + ' rounds · ' + (NET.host ? (S.stack || 7) : (NET.stack || 7)) + ' slabs';
+  $('lbStart').hidden = !NET.host; $('lbWait').hidden = NET.host;
+  $('lbSwitch').disabled = !me || NET.players.filter(p => p.team !== me.team).length >= 4;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c])); }
+function netShowResults(m){
+  phase = 'netover'; camMode = 'menu'; hint.net = true; hint(''); hint.net = false; youMark.visible = false; hidePreview(); aimHead.visible = false;
+  $('hud').hidden = true; $('netHud').hidden = true; $('dashBtn').hidden = true; $('joy').hidden = true; $('netMenu').hidden = true; document.body.classList.remove('net');
+  const myTeam = (m.players.find(p => p.id === NET.me) || {}).team;
+  $('roTitle').textContent = TEAM_NAMES[m.winner] + ' win!';
+  $('roSub').textContent = myTeam === m.winner ? 'Your team took it. Well played.' : myTeam === undefined ? '' : 'So close. Run it back?';
+  $('roScore').innerHTML = '<span class="a">' + m.score[0] + '</span><span class="dash">–</span><span class="b">' + m.score[1] + '</span>';
+  const rows = m.players.map(p => { const s = m.stats[p.id] || {st:0, hit:0, out:0}; return {p, s, pts:s.st*2 + s.hit*3}; }).sort((a, b) => b.pts - a.pts);
+  $('roTable').innerHTML = '<div class="rr head"><span>Player</span><span>Slabs</span><span>Hits</span><span>Outs</span></div>' +
+    rows.map((r, i) => '<div class="rr' + (r.p.id === NET.me ? ' me' : '') + '"><span><i class="tdot t' + r.p.team + '"></i>' + escapeHtml(r.p.name) + (i === 0 && r.pts > 0 ? ' <b class="mvp">MVP</b>' : '') + '</span><span>' + r.s.st + '</span><span>' + r.s.hit + '</span><span>' + r.s.out + '</span></div>').join('');
+  $('roRematch').hidden = !NET.host; $('roWait').hidden = NET.host;
+  NET.match = false;
+  setTimeout(() => { if (NET) $('netover').hidden = false; }, 900);
+}
+function netBackToLobby(){
+  if (!NET || !NET.host) return;
+  NET.match = false; phase = 'menu'; camMode = 'menu';
+  if (NET.saveLoad){ S.loadout = NET.saveLoad; NET.saveLoad = null; }
+  mode = 'free'; side = S.side === 'field' ? 'field' : 'build';
+  $('hud').hidden = true; $('netHud').hidden = true;
+  netBroadcastLobby();
+}
+// guests also go back to the lobby when the host's lobby message arrives after a match
+const netShowLobbyRaw = netShowLobby;
+netShowLobby = function(){
+  if (NET && !NET.host && (phase === 'netover' || NET.match === false) && online()){
+    if (NET.saveLoad){ S.loadout = NET.saveLoad; NET.saveLoad = null; }
+    mode = 'free'; side = S.side === 'field' ? 'field' : 'build'; phase = 'menu'; camMode = 'menu'; $('hud').hidden = true; $('netHud').hidden = true;
+  }
+  netShowLobbyRaw();
+};
+
+$('onlineBtn').onclick = () => { ensureAudio(); netOpenScreen(); };
+$('netBack').onclick = () => { netLeave(); $('online').hidden = true; showMenu(); };
+$('netCreate').onclick = () => { if (!netSaveName()) return; netOpen(newCode(), true); };
+$('netJoin').onclick = () => {
+  if (!netSaveName()) return;
+  const c = cleanCode($('netCode').value); if (c.length !== 5){ netOnlineStatus('Room codes are 5 letters or numbers.', true); $('netCode').focus(); return; }
+  netOpen(c, false);
+};
+$('netCode').addEventListener('input', e => { e.target.value = cleanCode(e.target.value); });
+$('netCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('netJoin').click(); });
+$('netName').addEventListener('keydown', e => { if (e.key === 'Enter') ($('netCode').value ? $('netJoin') : $('netCreate')).click(); });
+$('lbSwitch').onclick = () => {
+  const me = NET && NET.players.find(p => p.id === NET.me); if (!me) return;
+  if (NET.host){ const t = 1 - me.team; if (NET.players.filter(p => p.team === t).length < 4){ me.team = t; netBroadcastLobby(); } }
+  else netSend({t:'team', team:1 - me.team}, NET.hostId);
+};
+$('lbStart').onclick = () => netStartMatch();
+$('lbLeave').onclick = () => netLeave();
+$('lbCopy').onclick = () => {
+  const url = location.origin + location.pathname + location.search + '#join=' + NET.code;
+  const done = () => { $('lbCopy').textContent = 'Link copied'; setTimeout(() => $('lbCopy').textContent = 'Copy invite link', 1600); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => prompt('Copy this link', url)); else prompt('Copy this link', url);
+};
+$('nmResume').onclick = () => netMenuToggle(false);
+$('nmLeave').onclick = () => netLeave(NET && NET.host ? 'You closed the room.' : 'You left the match.');
+$('roRematch').onclick = () => netBackToLobby();
+$('roLeave').onclick = () => netLeave();
+if (/[?&]net=local/.test(location.search)) window.__pittu = () => { const me = myRole(); return {phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
+if (/[?&]net=local/.test(location.search)) window.__pittuAct = ev => netLocalEvent(ev);
+if (/[?&]net=local/.test(location.search)) window.__pittuGive = k => { if (NET && NET.host && phase === 'rebuild'){ const f = fielders[k]; ball = {state:'held', holder:f, x:f.x, z:f.z, y:1.1}; f.cd = 0; f.holdT = 0; } };
+addEventListener('keydown', e => { if (e.code === 'Escape' && !$('online').hidden && !(NET && NET.host)) $('netBack').click(); });
+(function(){ const m = location.hash.match(/join=([A-Za-z0-9]{5})/); if (m) setTimeout(() => netOpenScreen(cleanCode(m[1])), 50); })();
 
 showMenu();
 requestAnimationFrame(frame);
