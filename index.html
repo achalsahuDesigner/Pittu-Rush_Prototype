@@ -363,9 +363,9 @@ body.net .hud .lrow .plate{display:none}
 </div>
 <div id="netHud" hidden>
   <div class="sboard">
-    <div class="st a" id="ntA"><div><div class="tn">Team Gilli</div><div class="tr" id="nrA">Builders</div></div><div class="sv" id="nsA">0</div></div>
+    <div class="st a" id="ntA"><div><div class="tn">Team A</div><div class="tr" id="nrA">Builders</div></div><div class="sv" id="nsA">0</div></div>
     <div class="sround" id="nsRound">Round 1</div>
-    <div class="st b" id="ntB"><div><div class="tn">Team Danda</div><div class="tr" id="nrB">Fielders</div></div><div class="sv" id="nsB">0</div></div>
+    <div class="st b" id="ntB"><div><div class="tn">Team B</div><div class="tr" id="nrB">Fielders</div></div><div class="sv" id="nsB">0</div></div>
   </div>
   <div class="nrole" id="nRole">You</div>
 </div>
@@ -527,8 +527,8 @@ body.net .hud .lrow .plate{display:none}
     </div>
     <div class="foot" id="lbStatus"></div>
     <div class="lbteams">
-      <div class="lbteam t0" id="lbTeam0"><div class="th"><span class="tname">Team Gilli</span><span class="tcount"></span></div><div class="slots"></div></div>
-      <div class="lbteam t1" id="lbTeam1"><div class="th"><span class="tname">Team Danda</span><span class="tcount"></span></div><div class="slots"></div></div>
+      <div class="lbteam t0" id="lbTeam0"><div class="th"><span class="tname">Team A</span><span class="tcount"></span></div><div class="slots"></div></div>
+      <div class="lbteam t1" id="lbTeam1"><div class="th"><span class="tname">Team B</span><span class="tcount"></span></div><div class="slots"></div></div>
     </div>
     <div class="lbset">
       <div class="setc"><span class="sl">Builders on the field</span><span class="sv2"><button class="stp" type="button" data-k="nb" data-d="-1" aria-label="Fewer builders">−</button><b id="lbNb">4</b><button class="stp" type="button" data-k="nb" data-d="1" aria-label="More builders">+</button></span></div>
@@ -558,7 +558,7 @@ body.net .hud .lrow .plate{display:none}
 
 <div class="screen" id="netover" hidden>
   <div class="panel mid">
-    <div><div class="label">Match over</div><h2 class="title" id="roTitle" style="font-size:clamp(38px,10vw,56px)">Team Gilli win!</h2></div>
+    <div><div class="label">Match over</div><h2 class="title" id="roTitle" style="font-size:clamp(38px,10vw,56px)">Team A win!</h2></div>
     <p class="lede" id="roSub"></p>
     <div class="scoreline" id="roScore"></div>
     <div class="rtable" id="roTable"></div>
@@ -2932,7 +2932,7 @@ syncMute();
    simulation as solo, with humans plugged into characters). Everyone else sends inputs and draws
    20 snapshots a second. Empty seats are played by the bots. */
 const NET_APP = 'pittu-rush-achal-v2', NET_HZ = 20, WIN_ROUNDS = /[?&]net=local/.test(location.search) && /[?&]wins=(\d)/.test(location.search) ? +RegExp.$1 : 3;
-const TEAM_NAMES = ['Team Gilli', 'Team Danda'];
+const TEAM_NAMES = ['Team A', 'Team B'];
 const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const BOT_B = BUILDER_DEF.map(d => d.name), BOT_F = PROFILES.map(p => p.name);
 const r2 = v => Math.round(v*100)/100, r3 = v => Math.round(v*1000)/1000;
@@ -3066,7 +3066,7 @@ function setLabel(ch, text, color){
 }
 function pName(id){ const p = NET && NET.players.find(q => q.id === id); return p ? p.name : ''; }
 function netAssignRound(){
-  // the building team swaps every round: Team Gilli builds in odd rounds, Team Danda in even ones
+  // the building team swaps every round: Team A builds in odd rounds, Team B in even ones
   NET.buildTeam = round % 2 === 1 ? 0 : 1;
   const bt = NET.players.filter(p => p.team === NET.buildTeam), ft = NET.players.filter(p => p.team !== NET.buildTeam);
   NET.nbR = clamp(Math.max(NET.cfg.nb, bt.length), 1, 4); NET.nfR = clamp(Math.max(NET.cfg.nf, ft.length), 2, 4);
