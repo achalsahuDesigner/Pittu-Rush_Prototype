@@ -525,8 +525,9 @@ body.net .hud .lrow .plate{display:none}
         <div class="codebox" id="lbCodeBox"></div>
         <div style="display:none" id="lbCode"></div>
       </div>
-      <button class="linkbtn" id="lbCopy" type="button">Copy invite link</button>
+      <button class="linkbtn" id="lbCopy" type="button">Copy invite</button>
     </div>
+    <input class="inp" id="lbInvite" readonly hidden aria-label="Invite message to copy" style="font-size:14px">
     <div class="foot" id="lbStatus"></div>
     <div class="netline" id="lbNet">Connecting to matchmaking servers…</div>
     <div class="lbteams">
@@ -2943,15 +2944,61 @@ let netTransportLocal = false;
 const r2 = v => Math.round(v*100)/100, r3 = v => Math.round(v*1000)/1000;
 function newCode(){ let c = ''; for (let i=0;i<5;i++) c += CODE_ABC[Math.floor(Math.random()*CODE_ABC.length)]; return c; }
 function cleanCode(v){ return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5); }
-function myName(){ return String(S.netName || '').trim().slice(0, 12) || 'Player'; }
+function safeName(v){ return String(v || '').replace(/[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u180e\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff\ue000-\uf8ff]/g, '').trim().slice(0, 12); }
+function myName(){ return safeName(S.netName) || 'Player'; }
 function netHint(t){ hint.net = true; hint(t); hint.net = false; }
 function charId(p){ if (p === player) return 'p'; let i = builders.indexOf(p); if (i >= 0) return 'b' + i; i = fielders.indexOf(p); return i >= 0 ? 'f' + i : ''; }
 function charById(id){ if (id === 'p') return player; const i = +id.slice(1); return id[0] === 'b' ? builders[i] : id[0] === 'f' ? fielders[i] : null; }
 
 /* ---- transport: WebRTC via Trystero (public Nostr relays for signalling, no server or account),
    or a BroadcastChannel between tabs of one browser when the URL has ?net=local (for testing) ---- */
-function makeTransport(code, onMsg, onJoin, onLeave){
-  const local = /[?&]net=local/.test(location.search) || !window.Trystero;
+const roomP = (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use('room')).catch(() => null) : Promise.resolve(null);
+const inArtifact = !!(window.claude && typeof window.claude.use === 'function');
+/* Inside the Claude artifact viewer: everyone with the page open shares a live room (no outside servers).
+   All traffic rides on each player's presence slot, which every viewer may set: a short queue of
+   numbered messages plus one 'latest only' slot each for snapshots and inputs. */
+async function makeRoomTransport(room, code, onMsg, onJoin, onLeave){
+  const nr = await room.join('pittu-' + code.toLowerCase());
+  let self = null, live = false, seq = 0, queue = [], latest = {}, pend = false;
+  const known = new Set(), seenQ = {}, seenL = {};
+  const push = () => {
+    if (pend) return; pend = true;
+    setTimeout(() => {
+      pend = false; const now = Date.now(); queue = queue.filter(e => now - e[3] < 2500);
+      const body = () => ({q:queue.map(e => [e[0], e[1], e[2]]), l:latest});
+      let b = body(), txt = JSON.stringify(b);
+      while (txt.length > 3600 && queue.length){ queue.shift(); b = body(); txt = JSON.stringify(b); }
+      nr.presence({m:b}).catch(() => {});
+    }, 0);
+  };
+  const tick = setInterval(() => { if (queue.length) push(); }, 700);
+  const handle = p => {
+    const m = p.presence && p.presence.m; if (!m) return;
+    const id = p.peer, lq = seenQ[id] || 0; let mx = lq;
+    if (Array.isArray(m.q)) for (const e of m.q){ if (Array.isArray(e) && e[0] > lq){ mx = Math.max(mx, e[0]); if (!e[1] || e[1] === self) onMsg(e[2], id); } }
+    seenQ[id] = mx;
+    if (m.l) for (const k of Object.keys(m.l)){ const e = m.l[k], key = id + '|' + k; if (Array.isArray(e) && e[0] > (seenL[key] || 0)){ seenL[key] = e[0]; if (!e[1] || e[1] === self) onMsg(e[2], id); } }
+  };
+  const process = peers => { for (const p of peers){ if (p.sameTab){ self = p.peer; continue; } if (p.kind !== 'viewer') continue; if (!known.has(p.peer)){ known.add(p.peer); onJoin(p.peer); } handle(p); } };
+  nr.onPeers(ch => {
+    for (const p of ch.peers) if (p.sameTab) self = p.peer;
+    if (!live) return;
+    process(ch.peers);
+    for (const p of ch.left) if (known.delete(p.peer)) onLeave(p.peer);
+  });
+  const t0 = Date.now();
+  while (!self && Date.now() - t0 < 8000){ await new Promise(r => setTimeout(r, 100)); for (const p of nr.peers()) if (p.sameTab) self = p.peer; }
+  if (!self){ nr.leave().catch(() => {}); throw new Error('The room did not answer.'); }
+  return {self, local:false, kind:'room',
+    go(){ live = true; process(nr.peers()); },
+    send(d, to){ const e = [++seq, to || null, d]; if (d.t === 's' || d.t === 'in') latest[d.t] = e; else { e.push(Date.now()); queue.push(e); } push(); },
+    status(){ return {servers:nr.connected() ? 1 : 0, peers:known.size}; },
+    leave(){ clearInterval(tick); nr.leave().catch(() => {}); }};
+}
+async function makeTransport(code, onMsg, onJoin, onLeave){
+  const local = /[?&]net=local/.test(location.search);
+  if (!local){ const room = await roomP; if (room) return makeRoomTransport(room, code, onMsg, onJoin, onLeave); }
+  if (!local && !window.Trystero) throw new Error('Online play is not available here.');
   if (local) netTransportLocal = true;
   if (local){
     const self = 'L' + Math.random().toString(36).slice(2, 10), bc = new BroadcastChannel('pittu-' + code), peers = new Set();
@@ -2964,7 +3011,7 @@ function makeTransport(code, onMsg, onJoin, onLeave){
     };
     const bye = () => { try { bc.postMessage({sys:'bye', from:self}); } catch(e){} };
     addEventListener('pagehide', bye); bc.postMessage({sys:'hi', from:self});
-    return {self, local:true, status:() => ({servers:1, peers:peers.size}), send:(d, to) => bc.postMessage({d, from:self, to:to || null}), leave:() => { bye(); bc.close(); removeEventListener('pagehide', bye); }};
+    return {self, local:true, go(){}, status:() => ({servers:1, peers:peers.size}), send:(d, to) => bc.postMessage({d, from:self, to:to || null}), leave:() => { bye(); bc.close(); removeEventListener('pagehide', bye); }};
   }
   // two independent ways to find each other, run together: big public Nostr relays and WebTorrent trackers.
   // Whichever connects a peer first carries all messages with that peer.
@@ -2988,27 +3035,34 @@ function makeTransport(code, onMsg, onJoin, onLeave){
   });
   const sendTo = (d, id) => { const a = acts[route[id]]; if (a){ const pr = a.send(d, {target:id}); if (pr && pr.catch) pr.catch(() => {}); } };
   const openCount = socks => { try { return Object.values(socks() || {}).filter(w => w && w.readyState === 1).length; } catch(e){ return 0; } };
-  return {self:T.selfId, local:false,
+  return {self:T.selfId, local:false, go(){},
     send:(d, to) => { if (to) sendTo(d, to); else Object.keys(route).forEach(id => sendTo(d, id)); },
     status:() => ({servers:openCount(T.nostrSockets) + openCount(T.torrentSockets), peers:Object.keys(route).length}),
     leave:() => rooms.forEach(r => { try { r.leave(); } catch(e){} })};
 }
 
 /* ---- room lifecycle ---- */
-function netOpen(code, host){
+async function netOpen(code, host){
   if (NET) netLeave();
   NET = {code, host, hostId:null, players:[], match:false, inputs:{}, aimPtr:null, sendT:0, inT:0, fx:[], snap:null, lastSnap:0,
          teamScore:[0,0], buildTeam:0, stats:{}, cfg:{nb:S.netB || 4, nf:S.netF || 4}, nbR:4, nfR:4, ctl:null, ctlHolder:null, ctlT:0, assign:{b:[], f:[]}, smasher:null, roundDone:-1, joinT:0, saveLoad:null, local:{mx:0, mz:0, aim:null}};
-  NET.t = makeTransport(code, netOnMsg, netOnJoin, netOnLeave);
-  NET.me = NET.t.self;
+  const mine = NET;
+  netOnlineStatus(host ? 'Opening a room…' : 'Looking for room ' + code + '…', false);
+  const hooks = [(d, f) => { if (NET === mine && NET.t) netOnMsg(d, f); }, id => { if (NET === mine && NET.t) netOnJoin(id); }, id => { if (NET === mine && NET.t) netOnLeave(id); }];
+  let t;
+  try { t = await makeTransport(code, ...hooks); }
+  catch(e){ if (NET === mine){ NET = null; netOnlineStatus(inArtifact ? 'Online rooms need you to be signed in to Claude and invited to this page (public links cannot join). ' + (e.message || '') : String(e.message || e), true); } return; }
+  if (NET !== mine){ t.leave(); return; }
+  NET.t = t; NET.me = t.self;
   if (host){ NET.hostId = NET.me; NET.players = [{id:NET.me, name:myName(), team:0}]; netShowLobby(); netBroadcastLobby(); }
-  else { NET.joinT = performance.now(); netOnlineStatus('Looking for room ' + code + '…', false); }
+  else { NET.joinT = performance.now(); }
+  t.go();
 }
 function netLeave(reason){
   if (!NET) return;
   const wasMatch = NET.match;
-  if (NET.host && NET.players.length > 1) netSendAll({t:'bye'});
-  try { NET.t.leave(); } catch(e){}
+  if (NET.t && NET.host && NET.players.length > 1) netSendAll({t:'bye'});
+  try { if (NET.t) NET.t.leave(); } catch(e){}
   if (NET.saveLoad) S.loadout = NET.saveLoad;
   builders.forEach((b, k) => { b.human = null; b.name = BOT_B[k]; setLabel(b, BOT_B[k], 0xC2410C); });
   fielders.forEach((f, k) => { f.human = null; f.name = BOT_F[k]; setLabel(f, BOT_F[k], 0x1F4E8F); });
@@ -3019,8 +3073,8 @@ function netLeave(reason){
   if (online() || wasMatch){ mode = 'free'; side = S.side === 'field' ? 'field' : 'build'; showMenu(); }
   if (reason) netToast(reason);
 }
-function netSend(d, to){ if (NET) NET.t.send(d, to); }
-function netSendAll(d){ if (NET) NET.t.send(d); }
+function netSend(d, to){ if (NET && NET.t) NET.t.send(d, to); }
+function netSendAll(d){ if (NET && NET.t) NET.t.send(d); }
 function netOnJoin(id){ if (!NET) return; if (!NET.host) netSend({t:'hello', name:myName()}, id); }
 function netOnLeave(id){
   if (!NET) return;
@@ -3042,7 +3096,7 @@ function netOnMsg(m, from){
       if (NET.match){ netSend({t:'reject', why:'That match has already started. Ask the host for a rematch.'}, from); return; }
       if (NET.players.length >= 8){ netSend({t:'reject', why:'That room is full (8 players).'}, from); return; }
       const n0 = NET.players.filter(q => q.team === 0).length, n1 = NET.players.length - n0;
-      NET.players.push({id:from, name:String(m.name || 'Player').slice(0, 12), team:n1 < n0 ? 1 : 0});
+      NET.players.push({id:from, name:safeName(m.name) || 'Player', team:n1 < n0 ? 1 : 0});
       netBroadcastLobby(); return;
     }
     if (!p) return;
@@ -3056,10 +3110,11 @@ function netOnMsg(m, from){
   if (from !== NET.hostId) return;
   if (m.t === 'reject'){ netLeave(); netOpenScreen(); netOnlineStatus(m.why, true); return; }
   if (m.t === 'bye'){ netLeave('The host closed the room.'); return; }
-  if (m.t === 'start'){ NET.players = m.players; netBeginMatch(m.seed, m.stack); return; }
+  if (m.t === 'start'){ if (!m.players.some(p => p.id === NET.me)) return; NET.players = m.players; netBeginMatch(m.seed, m.stack); return; }
   if (m.t === 'round'){ netApplyRound(m); return; }
   if (m.t === 'players'){ NET.players = m.players; return; }
-  if (m.t === 's'){ NET.snap = m; NET.lastSnap = performance.now(); if (m.fx) m.fx.forEach(netPlayFx); netApplySnapTargets(m); return; }
+  if (m.t === 'fx'){ if (NET.match) m.fx.forEach(netPlayFx); return; }
+  if (m.t === 's'){ NET.snap = m; NET.lastSnap = performance.now(); netApplySnapTargets(m); return; }
   if (m.t === 'end'){ netShowResults(m); return; }
 }
 function netBroadcastLobby(){ if (!NET || !NET.host) return; netSendAll({t:'lobby', players:NET.players, stack:S.stack || 7, cfg:NET.cfg}); netShowLobby(); }
@@ -3147,7 +3202,7 @@ function netBuildersWin(b){
 function netMatchOver(){
   const won = NET.teamScore.findIndex(s => s >= WIN_ROUNDS);
   if (won < 0) return false;
-  const m = {t:'end', winner:won, score:NET.teamScore, stats:NET.stats, players:NET.players};
+  const m = {t:'end', winner:won, score:NET.teamScore, stats:Object.keys(NET.stats).map(id => [id, NET.stats[id].st, NET.stats[id].hit, NET.stats[id].out]), players:NET.players};
   netSendAll(m); netShowResults(m); return true;
 }
 
@@ -3314,8 +3369,7 @@ function netSnapshot(){
     St:stones.map(s => { const p = s.mesh.position, q = s.mesh.quaternion; return [r2(p.x), r2(p.y), r2(p.z), r3(q.x), r3(q.y), r3(q.z), r3(q.w), s.placed ? 1 : 0, r2(s.x || 0), r2(s.z || 0)]; }),
     bl:ballMesh.visible && ball.state !== 'none' || (sm && ballMesh.visible) ? [r2(ballMesh.position.x), r2(ballMesh.position.y), r2(ballMesh.position.z), ball.state === 'held' ? 1 : ball.state === 'loose' ? 2 : ball.state === 'flight' ? 3 : 0, h] : null,
     ha:hInp && hInp.aim && phase === 'rebuild' ? [r2(hInp.aim.x), r2(hInp.aim.z)] : null, ctl:NET.ctl,
-    pr:props.map(p => p.alive ? 1 : 0).join(''),
-    fx:NET.fx.splice(0)};
+    pr:props.map(p => p.alive ? 1 : 0).join('')};
 }
 function netApplySnapTargets(m){
   // characters, stones and the ball ease toward these every frame
@@ -3398,21 +3452,21 @@ const netQ = new THREE.Quaternion();
 
 /* ---- every frame, host and guests: local input, sending, HUD ---- */
 function netTick(rdt){
-  if (!NET) return;
+  if (!NET || !NET.t) return;
   if (!NET.host && !NET.hostId && NET.joinT){
-    const w = performance.now() - NET.joinT, st = NET.t.status ? NET.t.status() : {servers:0, peers:0};
+    const w = performance.now() - NET.joinT, st = NET.t.status ? NET.t.status() : {servers:0, peers:0}, inRoom = NET.t.kind === 'room';
     if (w > 35000){
-      const why = st.servers === 0 ? 'Could not reach any matchmaking servers. Your network may be blocking them: try another Wi-Fi or mobile data.'
+      const why = inRoom ? (st.peers ? 'Players are here but none is hosting ' + NET.code + '. Check the code with your host.' : 'Nobody is hosting ' + NET.code + ' on this page right now. Check the code, and make sure your host has this same page open.') : st.servers === 0 ? 'Could not reach any matchmaking servers. Your network may be blocking them: try another Wi-Fi or mobile data.'
         : st.peers === 0 ? 'No room found for ' + NET.code + '. Check the code, and keep the host\'s game open and on screen.'
         : 'Found players but could not connect to the host. This network may block direct connections: try another Wi-Fi or mobile data.';
       const code = NET.code; netLeave(); netOpenScreen(code); netOnlineStatus(why, true); return;
     }
     NET.stT = (NET.stT || 0) + rdt;
-    if (NET.stT > 0.5){ NET.stT = 0; netOnlineStatus('Looking for room ' + NET.code + '… ' + Math.ceil((35000 - w)/1000) + ' s · ' + st.servers + ' matchmaking server' + (st.servers === 1 ? '' : 's') + ' connected' + (st.peers ? ' · ' + st.peers + ' player' + (st.peers === 1 ? '' : 's') + ' found' : ''), false); }
+    if (NET.stT > 0.5){ NET.stT = 0; netOnlineStatus('Looking for room ' + NET.code + '… ' + Math.ceil((35000 - w)/1000) + ' s · ' + (inRoom ? (st.servers ? 'connected' : 'connecting') : st.servers + ' matchmaking server' + (st.servers === 1 ? '' : 's') + ' connected') + (st.peers ? ' · ' + st.peers + ' player' + (st.peers === 1 ? '' : 's') + ' found' : ''), false); }
   }
   if (NET.host && !NET.match && !$('lobby').hidden){
     NET.stT = (NET.stT || 0) + rdt;
-    if (NET.stT > 1){ NET.stT = 0; const st = NET.t.status ? NET.t.status() : {servers:0}; $('lbNet').textContent = st.servers ? 'Room is live · ' + st.servers + ' matchmaking servers connected' : 'Connecting to matchmaking servers…'; $('lbNet').classList.toggle('bad', !st.servers); }
+    if (NET.stT > 1){ NET.stT = 0; const st = NET.t.status ? NET.t.status() : {servers:0}; $('lbNet').textContent = NET.t.kind === 'room' ? (st.servers ? 'Room is live on this page · friends open the same link and enter the code' : 'Connecting…') : st.servers ? 'Room is live · ' + st.servers + ' matchmaking servers connected' : 'Connecting to matchmaking servers…'; $('lbNet').classList.toggle('bad', !st.servers); }
   }
   if (!NET.match) return;
   let mx = 0, mz = 0;
@@ -3424,7 +3478,7 @@ function netTick(rdt){
   NET.sendT += rdt;
   if (NET.sendT >= 1/NET_HZ){
     NET.sendT = 0;
-    if (NET.host){ if (NET.players.length > 1 || NET.fx.length) netSendAll(netSnapshot()); else NET.fx.length = 0; }
+    if (NET.host){ if (NET.players.length > 1){ if (NET.fx.length) netSendAll({t:'fx', fx:NET.fx.splice(0, 12)}); netSendAll(netSnapshot()); } else NET.fx.length = 0; }
     else netSend({t:'in', mx:r2(NET.local.mx), mz:r2(NET.local.mz), aim:NET.local.aim ? [r2(NET.local.aim.x), r2(NET.local.aim.z)] : null}, NET.hostId);
   }
 }
@@ -3583,7 +3637,8 @@ function netShowResults(m){
   $('roTitle').textContent = TEAM_NAMES[m.winner] + ' win!';
   $('roSub').textContent = myTeam === m.winner ? 'Your team took it. Well played.' : myTeam === undefined ? '' : 'So close. Run it back?';
   $('roScore').innerHTML = '<span class="a">' + m.score[0] + '</span><span class="dash">–</span><span class="b">' + m.score[1] + '</span>';
-  const rows = m.players.map(p => { const s = m.stats[p.id] || {st:0, hit:0, out:0}; return {p, s, pts:s.st*2 + s.hit*3}; }).sort((a, b) => b.pts - a.pts);
+  const stats = {}; (m.stats || []).forEach(a => stats[a[0]] = {st:a[1], hit:a[2], out:a[3]});
+  const rows = m.players.map(p => { const s = stats[p.id] || {st:0, hit:0, out:0}; return {p, s, pts:s.st*2 + s.hit*3}; }).sort((a, b) => b.pts - a.pts);
   $('roTable').innerHTML = '<div class="rr head"><span>Player</span><span>Slabs</span><span>Hits</span><span>Outs</span></div>' +
     rows.map((r, i) => '<div class="rr' + (r.p.id === NET.me ? ' me' : '') + '"><span><i class="tdot t' + r.p.team + '"></i>' + escapeHtml(r.p.name) + (i === 0 && r.pts > 0 ? ' <b class="mvp">MVP</b>' : '') + '</span><span>' + r.s.st + '</span><span>' + r.s.hit + '</span><span>' + r.s.out + '</span></div>').join('');
   $('roRematch').hidden = !NET.host; $('roWait').hidden = NET.host;
@@ -3610,18 +3665,25 @@ netShowLobby = function(){
 
 $('onlineBtn').onclick = () => { ensureAudio(); netOpenScreen(); };
 $('netBack').onclick = () => { netLeave(); $('online').hidden = true; showMenu(); };
-function netCanGoOnline(){
+async function netCanGoOnline(){
   if (/[?&]net=local/.test(location.search)) return true;
+  if (inArtifact){
+    netOnlineStatus('Connecting…', false);
+    if (await roomP) return true;
+    netOnlineStatus('Online rooms here need you signed in to Claude and invited to this page by its owner (public links cannot join). Or use the GitHub link.', true);
+    return false;
+  }
   if (!window.Trystero || !window.RTCPeerConnection || !window.WebSocket || !(window.crypto && crypto.subtle) || !window.isSecureContext){
     netOnlineStatus('Online play needs the game opened from its https link (the GitHub Pages address) in Chrome, Safari or Firefox. Previews and plain http pages block it.', true);
     return false;
   }
   return true;
 }
-$('netCreate').onclick = () => { if (!netSaveName() || !netCanGoOnline()) return; netOpen(newCode(), true); };
-$('netJoin').onclick = () => {
-  if (!netSaveName() || !netCanGoOnline()) return;
+$('netCreate').onclick = async () => { if (!netSaveName() || !(await netCanGoOnline())) return; netOpen(newCode(), true); };
+$('netJoin').onclick = async () => {
+  if (!netSaveName()) return;
   const c = cleanCode($('netCode').value); if (c.length !== 5){ netOnlineStatus('Room codes are 5 letters or numbers.', true); $('netCode').focus(); return; }
+  if (!(await netCanGoOnline())) return;
   netOpen(c, false);
 };
 $('netCode').addEventListener('input', e => { e.target.value = cleanCode(e.target.value); });
@@ -3639,18 +3701,22 @@ document.querySelectorAll('.lbset .stp').forEach(b => b.onclick = () => {
   NET.cfg[k] = clamp(NET.cfg[k] + d, lo, 4); S[k === 'nb' ? 'netB' : 'netF'] = NET.cfg[k]; persist(); netBroadcastLobby();
 });
 $('lbLeave').onclick = () => netLeave();
+const PROTO_URL = 'https://claude.ai/artifact/32Lbc9LBtEAft9aMAE5ua8';
 $('lbCopy').onclick = () => {
-  const url = location.origin + location.pathname + location.search + '#join=' + NET.code;
-  const done = () => { $('lbCopy').textContent = 'Link copied'; setTimeout(() => $('lbCopy').textContent = 'Copy invite link', 1600); };
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => prompt('Copy this link', url)); else prompt('Copy this link', url);
+  const text = inArtifact
+    ? 'Play Pittu Rush with me! Open ' + PROTO_URL + ' , tap Play Online and join room ' + NET.code
+    : 'Play Pittu Rush with me! ' + location.origin + location.pathname + '#join=' + NET.code + ' (room ' + NET.code + ')';
+  const show = () => { const f = $('lbInvite'); f.hidden = false; f.value = text; f.focus(); f.select(); };
+  const done = () => { $('lbCopy').textContent = 'Invite copied'; setTimeout(() => $('lbCopy').textContent = 'Copy invite', 1600); };
+  try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, show); else show(); } catch(e){ show(); }
 };
 $('nmResume').onclick = () => netMenuToggle(false);
 $('nmLeave').onclick = () => netLeave(NET && NET.host ? 'You closed the room.' : 'You left the match.');
 $('roRematch').onclick = () => netBackToLobby();
 $('roLeave').onclick = () => netLeave();
-if (/[?&]net=local/.test(location.search)) window.__pittu = () => { const me = myRole(); return {phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, ctl:NET && NET.ctl === NET.me, role:$('nRole').textContent, act:[builders.filter(b => b.active).length, fielders.filter(f => f.active).length], fpos:fielders.map(f => [r2(f.x), r2(f.z)]), B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
-if (/[?&]net=local/.test(location.search)) window.__pittuAct = ev => netLocalEvent(ev);
-if (/[?&]net=local/.test(location.search)) window.__pittuGive = k => { if (NET && NET.host && phase === 'rebuild'){ const f = fielders[k]; ball = {state:'held', holder:f, x:f.x, z:f.z, y:1.1}; f.cd = 0; f.holdT = 0; } };
+if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittu = () => { const me = myRole(); return {phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, ctl:NET && NET.ctl === NET.me, role:$('nRole').textContent, act:[builders.filter(b => b.active).length, fielders.filter(f => f.active).length], fpos:fielders.map(f => [r2(f.x), r2(f.z)]), B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), snapLen:NET && NET.host && NET.match ? JSON.stringify(netSnapshot()).length : 0, rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
+if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittuAct = ev => netLocalEvent(ev);
+if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittuGive = k => { if (NET && NET.host && phase === 'rebuild'){ const f = fielders[k]; ball = {state:'held', holder:f, x:f.x, z:f.z, y:1.1}; f.cd = 0; f.holdT = 0; } };
 addEventListener('keydown', e => { if (e.code === 'Escape' && !$('online').hidden && !(NET && NET.host)) $('netBack').click(); });
 (function(){ const m = location.hash.match(/join=([A-Za-z0-9]{5})/); if (m) setTimeout(() => netOpenScreen(cleanCode(m[1])), 50); })();
 
