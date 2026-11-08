@@ -3673,8 +3673,13 @@ async function netCanGoOnline(){
     netOnlineStatus('Online rooms here need you signed in to Claude and invited to this page by its owner (public links cannot join). Or use the GitHub link.', true);
     return false;
   }
-  if (!window.Trystero || !window.RTCPeerConnection || !window.WebSocket || !(window.crypto && crypto.subtle) || !window.isSecureContext){
-    netOnlineStatus('Online play needs the game opened from its https link (the GitHub Pages address) in Chrome, Safari or Firefox. Previews and plain http pages block it.', true);
+  const miss = [];
+  if (!window.Trystero) miss.push('the online library did not load');
+  if (!window.RTCPeerConnection) miss.push('this browser or page blocks WebRTC');
+  if (!window.WebSocket) miss.push('WebSockets are blocked');
+  if (!(window.crypto && crypto.subtle)) miss.push(location.protocol === 'https:' ? 'secure crypto is blocked in this frame' : 'the page is not on https (it is ' + location.protocol.replace(':', '') + ')');
+  if (miss.length){
+    netOnlineStatus('Online play cannot start here: ' + miss.join('; ') + '. Open the game from https://achalsahudesigner.github.io/Pittu-Rush_Prototype/ or the Claude prototype link, in its own tab (Edge, Chrome, Safari and Firefox all work).', true);
     return false;
   }
   return true;
