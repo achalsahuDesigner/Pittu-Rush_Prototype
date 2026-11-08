@@ -3151,7 +3151,7 @@ function netAssignRound(){
   // the building team swaps every round: Team A builds in odd rounds, Team B in even ones
   NET.buildTeam = round % 2 === 1 ? 0 : 1;
   const bt = NET.players.filter(p => p.team === NET.buildTeam), ft = NET.players.filter(p => p.team !== NET.buildTeam);
-  NET.nbR = clamp(Math.max(NET.cfg.nb, bt.length), 1, 4); NET.nfR = clamp(Math.max(NET.cfg.nf, ft.length), 2, 4);
+  NET.nbR = clamp(Math.max(NET.cfg.nb, bt.length), 1, 4); NET.nfR = clamp(Math.max(NET.cfg.nf, ft.length), 1, 4);
   NET.assign = {b:builders.map((b, k) => bt[k] ? bt[k].id : null), f:fielders.map((f, k) => ft[k] ? ft[k].id : null), nb:NET.nbR, nf:NET.nfR};
   NET.smasher = NET.assign.b.find(Boolean) || null;
   const msg = {t:'round', round, buildTeam:NET.buildTeam, assign:NET.assign, smasher:NET.smasher, score:NET.teamScore, players:NET.players};
@@ -3679,7 +3679,8 @@ async function netCanGoOnline(){
   if (!window.WebSocket) miss.push('WebSockets are blocked');
   if (!(window.crypto && crypto.subtle)) miss.push(location.protocol === 'https:' ? 'secure crypto is blocked in this frame' : 'the page is not on https (it is ' + location.protocol.replace(':', '') + ')');
   if (miss.length){
-    netOnlineStatus('Online play cannot start here: ' + miss.join('; ') + '. Open the game from https://achalsahudesigner.github.io/Pittu-Rush_Prototype/ or the Claude prototype link, in its own tab (Edge, Chrome, Safari and Firefox all work).', true);
+    console.warn('online blocked:', miss.join('; '));
+    netOnlineStatus('Online play does not work here. Please open the game in Google Chrome.', true);
     return false;
   }
   return true;
@@ -3702,7 +3703,7 @@ $('lbSwitch').onclick = () => {
 $('lbStart').onclick = () => netStartMatch();
 document.querySelectorAll('.lbset .stp').forEach(b => b.onclick = () => {
   if (!NET || !NET.host) return;
-  const k = b.dataset.k, d = +b.dataset.d, lo = k === 'nb' ? 1 : 2;
+  const k = b.dataset.k, d = +b.dataset.d, lo = 1;
   NET.cfg[k] = clamp(NET.cfg[k] + d, lo, 4); S[k === 'nb' ? 'netB' : 'netF'] = NET.cfg[k]; persist(); netBroadcastLobby();
 });
 $('lbLeave').onclick = () => netLeave();
