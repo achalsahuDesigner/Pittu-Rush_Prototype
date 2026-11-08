@@ -273,6 +273,14 @@ body{
 .slot:not(.filled) .sn{color:var(--muted); font-weight:600}
 .sb{font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; border-radius:999px; padding:2px 7px; background:rgba(184,186,232,.2); color:var(--muted)}
 .sb.host{background:var(--marigold); color:var(--indigo)} .sb.you{background:var(--teal); color:var(--chalk)}
+.lbset{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.setc{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(13,14,44,.45); border-radius:12px; padding:8px 10px 8px 14px}
+.setc .sl{font-size:14px; font-weight:800}
+.sv2{display:flex; align-items:center; gap:10px}
+.sv2 b{font-size:22px; min-width:18px; text-align:center; font-variant-numeric:tabular-nums}
+.stp{width:36px; height:36px; border-radius:10px; border:2px solid var(--muted); background:transparent; color:var(--chalk); font:inherit; font-size:20px; font-weight:800; cursor:pointer}
+.stp:hover{border-color:var(--chalk)}
+@media (max-width:640px){ .lbset{grid-template-columns:1fr} }
 .lbfoot{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
 .lbfoot .grow{flex:1}
 .lbfoot .btn{min-height:52px}
@@ -522,7 +530,11 @@ body.net .hud .lrow .plate{display:none}
       <div class="lbteam t0" id="lbTeam0"><div class="th"><span class="tname">Team Gilli</span><span class="tcount"></span></div><div class="slots"></div></div>
       <div class="lbteam t1" id="lbTeam1"><div class="th"><span class="tname">Team Danda</span><span class="tcount"></span></div><div class="slots"></div></div>
     </div>
-    <div class="foot">Teams swap every round: one team smashes and rebuilds, the other fields. Fielders move freely, but once you hold the ball you are rooted until you throw or pass.</div>
+    <div class="lbset">
+      <div class="setc"><span class="sl">Builders on the field</span><span class="sv2"><button class="stp" type="button" data-k="nb" data-d="-1" aria-label="Fewer builders">−</button><b id="lbNb">4</b><button class="stp" type="button" data-k="nb" data-d="1" aria-label="More builders">+</button></span></div>
+      <div class="setc"><span class="sl">Fielders on the field</span><span class="sv2"><button class="stp" type="button" data-k="nf" data-d="-1" aria-label="Fewer fielders">−</button><b id="lbNf">4</b><button class="stp" type="button" data-k="nf" data-d="1" aria-label="More fielders">+</button></span></div>
+    </div>
+    <div class="foot">Teams swap every round: one team smashes and rebuilds, the other fields. Seats without a player are bots. If a bot fielder gets the ball, the nearest real fielder throws it. Fielders move freely, but once you hold the ball you are rooted until you throw or pass.</div>
     <div class="lbfoot">
       <button class="btn ghost" id="lbLeave" type="button"><span class="bt">Leave</span></button>
       <button class="btn ghost" id="lbSwitch" type="button"><span class="bt">Switch team</span></button>
@@ -1575,7 +1587,7 @@ function sidelineFielders(){
     f.mesh.position.set(f.x, 0, f.z); f.mesh.rotation.y = side > 0 ? -Math.PI/2 : Math.PI/2; f.mesh.visible = k < fielderCount();
   });
 }
-function fielderCount(){ if (online()) return 4; return side === 'field' ? 3 : round === 1 ? 2 : round < 4 ? 3 : 4; }
+function fielderCount(){ if (online()) return NET.nfR || 4; return side === 'field' ? 3 : round === 1 ? 2 : round < 4 ? 3 : 4; }
 function hideBuilders(){ builders.forEach(b => { b.active = false; b.mesh.visible = false; b.carry = null; }); youMark.visible = false; }
 function startSmash(){
   if (online()) netAssignRound();
@@ -1734,7 +1746,7 @@ function startRebuild(){
   first.holdT = -1.0;
   if (side === 'field'){
     player.mesh.visible = false;
-    const nb = online() ? 4 : round >= 5 ? 4 : 3, spots = [[-2.2, 8.6], [0, 9.6], [2.2, 8.6], [0, 7.4]];
+    const nb = online() ? (NET.nbR || 4) : round >= 5 ? 4 : 3, spots = [[-2.2, 8.6], [0, 9.6], [2.2, 8.6], [0, 7.4]];
     builders.forEach((b, i) => {
       bTeam.runner = null; bTeam.stager = null; bTeam.goSaid = 0; bTeam.heldFor = 0; b.waitT = 0; b.commit = false; b.braveT = 0; b.alerted = false; b.baitT = 0;
       b.active = i < nb; b.mesh.visible = b.active; b.out = false; b.carry = null; b.role = 'decoy'; b.seen = -1; b.react = 0; b.dodgeT = 0; b.hideT = 0; b.braveT = 0; b.baitT = 1 + Math.random()*2;
@@ -1744,7 +1756,7 @@ function startRebuild(){
   }
   props.forEach(p => { if (p.canopy) p.canopy.material.opacity = 0.32; });
   danger.visible = true; camMode = 'rebuild'; phase = 'rebuild'; rebuildT = 0;
-  setPar(side === 'field' ? (online() ? 4 : round >= 5 ? 4 : 3) : stones.length - placed); player.label.visible = side === 'build';
+  setPar(side === 'field' ? (online() ? (NET.nbR || 4) : round >= 5 ? 4 : 3) : stones.length - placed); player.label.visible = side === 'build';
   if (isTouch) $('dashBtn').hidden = false;
   if (online()){ netAfterStartRebuild(); return; }
   if (side === 'field'){
@@ -2959,7 +2971,7 @@ function makeTransport(code, onMsg, onJoin, onLeave){
 function netOpen(code, host){
   if (NET) netLeave();
   NET = {code, host, hostId:null, players:[], match:false, inputs:{}, aimPtr:null, sendT:0, inT:0, fx:[], snap:null, lastSnap:0,
-         teamScore:[0,0], buildTeam:0, stats:{}, assign:{b:[], f:[]}, smasher:null, roundDone:-1, joinT:0, saveLoad:null, local:{mx:0, mz:0, aim:null}};
+         teamScore:[0,0], buildTeam:0, stats:{}, cfg:{nb:S.netB || 4, nf:S.netF || 4}, nbR:4, nfR:4, ctl:null, ctlHolder:null, ctlT:0, assign:{b:[], f:[]}, smasher:null, roundDone:-1, joinT:0, saveLoad:null, local:{mx:0, mz:0, aim:null}};
   NET.t = makeTransport(code, netOnMsg, netOnJoin, netOnLeave);
   NET.me = NET.t.self;
   if (host){ NET.hostId = NET.me; NET.players = [{id:NET.me, name:myName(), team:0}]; netShowLobby(); netBroadcastLobby(); }
@@ -3013,7 +3025,7 @@ function netOnMsg(m, from){
     return;
   }
   // ---- guest ----
-  if (m.t === 'lobby'){ NET.hostId = from; NET.players = m.players; NET.stack = m.stack; if (!NET.match){ netShowLobby(); } return; }
+  if (m.t === 'lobby'){ NET.hostId = from; NET.players = m.players; NET.stack = m.stack; if (m.cfg) NET.cfg = m.cfg; if (!NET.match){ netShowLobby(); } return; }
   if (from !== NET.hostId) return;
   if (m.t === 'reject'){ netLeave(); netOpenScreen(); netOnlineStatus(m.why, true); return; }
   if (m.t === 'bye'){ netLeave('The host closed the room.'); return; }
@@ -3023,7 +3035,7 @@ function netOnMsg(m, from){
   if (m.t === 's'){ NET.snap = m; NET.lastSnap = performance.now(); if (m.fx) m.fx.forEach(netPlayFx); netApplySnapTargets(m); return; }
   if (m.t === 'end'){ netShowResults(m); return; }
 }
-function netBroadcastLobby(){ if (!NET || !NET.host) return; netSendAll({t:'lobby', players:NET.players, stack:S.stack || 7}); netShowLobby(); }
+function netBroadcastLobby(){ if (!NET || !NET.host) return; netSendAll({t:'lobby', players:NET.players, stack:S.stack || 7, cfg:NET.cfg}); netShowLobby(); }
 
 /* ---- match start / rounds (host decides, guests mirror) ---- */
 function netStartMatch(){
@@ -3057,13 +3069,14 @@ function netAssignRound(){
   // the building team swaps every round: Team Gilli builds in odd rounds, Team Danda in even ones
   NET.buildTeam = round % 2 === 1 ? 0 : 1;
   const bt = NET.players.filter(p => p.team === NET.buildTeam), ft = NET.players.filter(p => p.team !== NET.buildTeam);
-  NET.assign = {b:builders.map((b, k) => bt[k] ? bt[k].id : null), f:fielders.map((f, k) => ft[k] ? ft[k].id : null)};
+  NET.nbR = clamp(Math.max(NET.cfg.nb, bt.length), 1, 4); NET.nfR = clamp(Math.max(NET.cfg.nf, ft.length), 2, 4);
+  NET.assign = {b:builders.map((b, k) => bt[k] ? bt[k].id : null), f:fielders.map((f, k) => ft[k] ? ft[k].id : null), nb:NET.nbR, nf:NET.nfR};
   NET.smasher = NET.assign.b.find(Boolean) || null;
   const msg = {t:'round', round, buildTeam:NET.buildTeam, assign:NET.assign, smasher:NET.smasher, score:NET.teamScore, players:NET.players};
   netSendAll(msg); netApplyRound(msg);
 }
 function netApplyRound(m){
-  NET.buildTeam = m.buildTeam; NET.assign = m.assign; NET.smasher = m.smasher; NET.teamScore = m.score; if (m.players) NET.players = m.players;
+  NET.buildTeam = m.buildTeam; NET.assign = m.assign; NET.nbR = m.assign.nb || 4; NET.nfR = m.assign.nf || 4; NET.ctl = null; NET.ctlHolder = null; NET.smasher = m.smasher; NET.teamScore = m.score; if (m.players) NET.players = m.players;
   if (!NET.host) round = m.round;
   builders.forEach((b, k) => { const id = m.assign.b[k]; b.human = id || null; b.name = id ? pName(id) : BOT_B[k]; setLabel(b, b.name, id === NET.me ? 0x0F766E : 0xC2410C); });
   fielders.forEach((f, k) => { const id = m.assign.f[k]; f.human = id || null; f.name = id ? pName(id) : BOT_F[k]; setLabel(f, f.name, id === NET.me ? 0x0F766E : 0x1F4E8F); });
@@ -3113,9 +3126,20 @@ function netMatchOver(){
 
 /* ---- host: humans plugged into the simulation ---- */
 function netInput(id){ if (id === NET.me) return NET.local; const i = NET.inputs[id]; return i && performance.now() - i.at < 1000 ? i : {mx:0, mz:0, aim:null}; }
-function netPreSim(){
-  const h = ball.state === 'held' ? ball.holder : null, inp = h && h.human ? netInput(h.human) : null;
-  aim = inp && inp.aim && h.cd <= 0 ? {pt:inp.aim} : null;   // the bots read the human thrower's aim, as in solo
+function netPreSim(dt){
+  const h = ball.state === 'held' && fielders.includes(ball.holder) ? ball.holder : null;
+  // a bot fielder with the ball is steered by the nearest real fielder; their own fielder runs on autopilot meanwhile
+  if (h && !h.human){
+    if (NET.ctlHolder !== h || !NET.players.some(p => p.id === NET.ctl)){
+      let best = null, bd = 1e9;
+      for (const f of fielders){ if (!f.active || !f.human) continue; const d = Math.hypot(f.x - h.x, f.z - h.z); if (d < bd){ bd = d; best = f; } }
+      NET.ctl = best ? best.human : null; NET.ctlHolder = h; NET.ctlT = 0;
+    }
+    NET.ctlT += dt || 0;
+  } else { NET.ctl = h ? h.human : null; NET.ctlHolder = h; NET.ctlT = 0; }
+  const inp = NET.ctl ? netInput(NET.ctl) : null;
+  if (inp && inp.aim) NET.ctlT = Math.min(NET.ctlT, 3);
+  aim = inp && inp.aim && h && h.cd <= 0 ? {pt:inp.aim} : null;   // the bots read the human thrower's aim, as in solo
 }
 function drawTele(f, pt){
   const ax = pt.x - f.x, az = pt.z - f.z, mate = mateAt(pt, f), al = Math.hypot(ax, az) || 1, len = mate ? al : AIM_LEN;
@@ -3125,6 +3149,14 @@ function drawTele(f, pt){
   f.mesh.rotation.y = Math.atan2(ax, az);
 }
 function netFielder(f, dt, holder, alive){
+  if (f.human && NET.ctl === f.human && holder && holder !== f && !holder.human) return false;   // on autopilot while steering the bot holder
+  if (f === holder && !f.human && NET.ctl){
+    const inp = netInput(NET.ctl); f.vx = f.vz = 0;
+    if (inp.aim) drawTele(f, inp.aim);
+    setRing(f, f.cd > 0 ? 1 - f.cd/f.reload : 1, f.cd > 0 ? 0xFFF7E6 : 0x2A8C84, 1);
+    if (NET.ctlT > 6) netBotHolder(f, dt, alive);   // nobody aimed for 6 s: the bot throws so the match never stalls
+    return true;
+  }
   if (f.human){
     const inp = netInput(f.human);
     if (f === holder){
@@ -3205,8 +3237,9 @@ function netHandleEvent(id, ev){
     if (b && !(b.dashCd > 0)){ b.dashT = 0.2; b.dashCd = 1.6; sfx.dash(); puff(b.x, 0.2, b.z, 5, 0.7); }
     return;
   }
-  const f = fielders.find(x => x.human === id && x.active);
-  if (!f || ball.state !== 'held' || ball.holder !== f) return;
+  if (ball.state !== 'held') return;
+  const f = ball.holder;
+  if (!f || !fielders.includes(f) || !(f.human === id || (!f.human && NET.ctl === id))) return;
   if (ev.e === 'throw' && isFinite(ev.x) && isFinite(ev.z)){
     const pt = {x:+ev.x, z:+ev.z}, mate = mateAt(pt, f);
     if (mate) passTo(f, mate); else { const before = ball; fieldThrow(f, pt.x, pt.z); if (ball !== before) ball.netBy = id; }
@@ -3245,7 +3278,7 @@ builderOut = (function(orig){
 /* ---- snapshots ---- */
 function netSnapshot(){
   const sm = phase === 'smash' || phase === 'smashWatch' || phase === 'settle';
-  const h = ball.state === 'held' ? fielders.indexOf(ball.holder) : -1, hInp = h >= 0 && ball.holder.human ? netInput(ball.holder.human) : null;
+  const h = ball.state === 'held' ? fielders.indexOf(ball.holder) : -1, hInp = h >= 0 && NET.ctl ? netInput(NET.ctl) : null;
   return {t:'s', ph:phase, r:round, tl:throwsLeft, pl:placed, rt:r2(rebuildT), par, wx:r2(windX || 0), sc:NET.teamScore, bt:NET.buildTeam,
     aim:phase === 'smash' ? [r3(aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : lockedYaw), aimStage === 'dir' ? 0 : 1, r2(aimStage === 'dir' ? 0.55 : powerAt(aimT)), ballReady ? 1 : 0] : null,
     B:builders.map(b => [r2(b.x), r2(b.z), r2(b.face), (b.active ? 1 : 0) | (b.out ? 2 : 0) | (b.mesh.visible ? 4 : 0) | (b.dashT > 0 ? 8 : 0), b.carry ? b.carry.i : -1]),
@@ -3253,7 +3286,7 @@ function netSnapshot(){
     P:[r2(player.mesh.position.x), r2(player.mesh.position.z), r2(player.mesh.rotation.y), player.mesh.visible ? 1 : 0],
     St:stones.map(s => { const p = s.mesh.position, q = s.mesh.quaternion; return [r2(p.x), r2(p.y), r2(p.z), r3(q.x), r3(q.y), r3(q.z), r3(q.w), s.placed ? 1 : 0, r2(s.x || 0), r2(s.z || 0)]; }),
     bl:ballMesh.visible && ball.state !== 'none' || (sm && ballMesh.visible) ? [r2(ballMesh.position.x), r2(ballMesh.position.y), r2(ballMesh.position.z), ball.state === 'held' ? 1 : ball.state === 'loose' ? 2 : ball.state === 'flight' ? 3 : 0, h] : null,
-    ha:hInp && hInp.aim && phase === 'rebuild' ? [r2(hInp.aim.x), r2(hInp.aim.z)] : null,
+    ha:hInp && hInp.aim && phase === 'rebuild' ? [r2(hInp.aim.x), r2(hInp.aim.z)] : null, ctl:NET.ctl,
     pr:props.map(p => p.alive ? 1 : 0).join(''),
     fx:NET.fx.splice(0)};
 }
@@ -3270,7 +3303,7 @@ function netGuestFrame(rdt, now){
       if (m.ph === 'smash' && phase !== 'smash'){ stones.forEach(s => { s.placed = true; }); builders.forEach(b => { b.out = false; b.mesh.rotation.z = 0; b.mesh.position.y = 0; b.label.material.opacity = 1; }); }
       if (m.ph === 'rebuild'){ rebuildT = m.rt; }
     }
-    phase = m.ph; round = m.r; throwsLeft = m.tl; placed = m.pl; par = m.par; windX = m.wx; NET.teamScore = m.sc; NET.buildTeam = m.bt;
+    NET.ctl = m.ctl || null; phase = m.ph; round = m.r; throwsLeft = m.tl; placed = m.pl; par = m.par; windX = m.wx; NET.teamScore = m.sc; NET.buildTeam = m.bt;
     rebuildT = phase === 'rebuild' ? Math.max(m.rt, Math.min(m.rt + 0.3, rebuildT + rdt)) : m.rt;
     camMode = phase === 'netover' ? 'menu' : (phase === 'smash' || phase === 'smashWatch' || phase === 'settle') ? 'smash' : 'rebuild';
     m.B.forEach((a, i) => {
@@ -3358,11 +3391,13 @@ function netTick(rdt){
 }
 function netFollow(){
   const me = myRole();
+  if (iSteer()) return {x:ball.holder.x, z:ball.holder.z};
   if (me && !(me.role === 'build' && me.ch.out) && me.ch.active) return {x:me.ch.x, z:me.ch.z};
   const h = ball.state === 'held' ? ball.holder : null;
   return h ? {x:h.x*0.6, z:h.z*0.6} : {x:(ball.x || 0)*0.5, z:(ball.z || 0)*0.5};
 }
-function iHoldBall(){ const me = myRole(); return !!(me && me.role === 'field' && ball.state === 'held' && ball.holder === me.ch); }
+function iHoldBall(){ const me = myRole(); return !!(me && me.role === 'field' && ball.state === 'held' && (ball.holder === me.ch || (NET.ctl === NET.me && ball.holder && !ball.holder.human))); }
+function iSteer(){ return iHoldBall() && ball.holder !== myRole().ch; }
 function netAfterFrame(){
   if (!NET || !NET.match) return;
   const me = myRole(), sm = phase === 'smash' || phase === 'smashWatch' || phase === 'settle';
@@ -3374,7 +3409,7 @@ function netAfterFrame(){
   $('nrA').textContent = bt === 0 ? 'Builders' : 'Fielders'; $('nrB').textContent = bt === 1 ? 'Builders' : 'Fielders';
   const myTeam = (NET.players.find(p => p.id === NET.me) || {}).team;
   $('ntA').classList.toggle('mine', myTeam === 0); $('ntB').classList.toggle('mine', myTeam === 1);
-  const roleTxt = !me ? 'Spectating' : me.role === 'build' ? (me.ch.out ? 'You are out' : 'You · Builder') : (iHoldBall() ? 'You · Fielder · ball in hand' : 'You · Fielder');
+  const roleTxt = !me ? 'Spectating' : me.role === 'build' ? (me.ch.out ? 'You are out' : 'You · Builder') : (iSteer() ? 'You · throwing for ' + ball.holder.name : iHoldBall() ? 'You · Fielder · ball in hand' : 'You · Fielder');
   $('nRole').textContent = roleTxt; $('nRole').className = 'nrole ' + (me ? me.role : '');
   // the HUD from solo, relabelled
   $('throwsLabel').textContent = 'Throws left'; $('stackLabel').textContent = 'Stack';
@@ -3382,7 +3417,8 @@ function netAfterFrame(){
   $('tags').innerHTML = '';
   $('timeLabel').textContent = 'Round time';
   // you marker
-  if (me && phase === 'rebuild' && me.ch.active && !(me.role === 'build' && me.ch.out)){ youMark.visible = true; youMark.position.set(me.ch.x, 2.95 + Math.sin(performance.now()/180)*0.1, me.ch.z); }
+  const yc = iSteer() ? ball.holder : me && me.ch;
+  if (me && phase === 'rebuild' && yc.active && !(me.role === 'build' && me.ch.out)){ youMark.visible = true; youMark.position.set(yc.x, 2.95 + Math.sin(performance.now()/180)*0.1, yc.z); }
   else youMark.visible = false;
   if (sm) player.label.visible = false;
   $('power').hidden = !(phase === 'smash' && NET.smasher === NET.me && aimStage === 'power' && ballReady);
@@ -3397,6 +3433,7 @@ function netAfterFrame(){
     else h = 'Defend! If the stack survives all 3 throws, your team wins the round.';
   } else if (phase === 'rebuild' && me){
     if (me.role === 'build') h = me.ch.out ? 'You are out. Cheer on your team.' : isTouch ? 'Left thumb moves · DASH dodges · carry the glowing slab home' : 'WASD or arrows move · Space dashes · carry the glowing slab to the stack';
+    else if (iSteer()) h = 'You have ' + ball.holder.name + "'s ball, so you throw for them. " + (isTouch ? 'Drag to aim, release to throw.' : 'Drag to aim, release to throw, or press 1–4 to pass.');
     else if (iHoldBall()) h = isTouch ? 'Ball in hand, you are rooted. Drag to aim, release to throw, or release on a teammate to pass.' : 'You have the ball, so you are rooted. Drag to aim, release to throw · release on a teammate or press 1–4 to pass';
     else h = ball.state === 'loose' ? 'Loose ball! Run over it to pick it up.' : isTouch ? 'Left thumb moves. Find an angle on the builders.' : 'WASD or arrows move. Find an angle on the builders.';
   }
@@ -3492,8 +3529,10 @@ function netShowLobby(){
     }
   }
   const n = NET.players.length;
-  $('lbStatus').textContent = n + ' of 8 players · empty seats are played by bots · first to ' + WIN_ROUNDS + ' rounds · ' + (NET.host ? (S.stack || 7) : (NET.stack || 7)) + ' slabs';
+  $('lbStatus').textContent = n + ' of 8 players · first to ' + WIN_ROUNDS + ' rounds · ' + (NET.host ? (S.stack || 7) : (NET.stack || 7)) + ' slabs';
   $('lbStart').hidden = !NET.host; $('lbWait').hidden = NET.host;
+  $('lbNb').textContent = NET.cfg.nb; $('lbNf').textContent = NET.cfg.nf;
+  document.querySelectorAll('.lbset .stp').forEach(b => { b.hidden = !NET.host; });
   $('lbSwitch').disabled = !me || NET.players.filter(p => p.team !== me.team).length >= 4;
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c])); }
@@ -3546,6 +3585,11 @@ $('lbSwitch').onclick = () => {
   else netSend({t:'team', team:1 - me.team}, NET.hostId);
 };
 $('lbStart').onclick = () => netStartMatch();
+document.querySelectorAll('.lbset .stp').forEach(b => b.onclick = () => {
+  if (!NET || !NET.host) return;
+  const k = b.dataset.k, d = +b.dataset.d, lo = k === 'nb' ? 1 : 2;
+  NET.cfg[k] = clamp(NET.cfg[k] + d, lo, 4); S[k === 'nb' ? 'netB' : 'netF'] = NET.cfg[k]; persist(); netBroadcastLobby();
+});
 $('lbLeave').onclick = () => netLeave();
 $('lbCopy').onclick = () => {
   const url = location.origin + location.pathname + location.search + '#join=' + NET.code;
@@ -3556,7 +3600,7 @@ $('nmResume').onclick = () => netMenuToggle(false);
 $('nmLeave').onclick = () => netLeave(NET && NET.host ? 'You closed the room.' : 'You left the match.');
 $('roRematch').onclick = () => netBackToLobby();
 $('roLeave').onclick = () => netLeave();
-if (/[?&]net=local/.test(location.search)) window.__pittu = () => { const me = myRole(); return {phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
+if (/[?&]net=local/.test(location.search)) window.__pittu = () => { const me = myRole(); return {phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, ctl:NET && NET.ctl === NET.me, role:$('nRole').textContent, act:[builders.filter(b => b.active).length, fielders.filter(f => f.active).length], fpos:fielders.map(f => [r2(f.x), r2(f.z)]), B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
 if (/[?&]net=local/.test(location.search)) window.__pittuAct = ev => netLocalEvent(ev);
 if (/[?&]net=local/.test(location.search)) window.__pittuGive = k => { if (NET && NET.host && phase === 'rebuild'){ const f = fielders[k]; ball = {state:'held', holder:f, x:f.x, z:f.z, y:1.1}; f.cd = 0; f.holdT = 0; } };
 addEventListener('keydown', e => { if (e.code === 'Escape' && !$('online').hidden && !(NET && NET.host)) $('netBack').click(); });

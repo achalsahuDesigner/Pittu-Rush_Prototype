@@ -18,6 +18,10 @@ No install, no build step. The whole game is one `index.html` file.
   - Teams swap every round: one team smashes and rebuilds, the other fields.
   - The first team to win 3 rounds wins the match, followed by a scoreboard and a rematch.
   - Fielders move freely, but once you hold the ball you are rooted until you throw or pass.
+  - The host sets how many builders (1–4) and fielders (2–4) are on the field. Bots fill any
+    seat without a player. If a team has more players than the setting, the count grows to fit them.
+  - When a bot fielder gets the ball, the nearest real fielder on that team aims and throws
+    it, while their own fielder runs on autopilot. If nobody aims for 6 seconds, the bot throws.
 
 ## How online works
 
