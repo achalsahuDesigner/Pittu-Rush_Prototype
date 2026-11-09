@@ -27,9 +27,10 @@ No install, no build step. The whole game is one `index.html` file.
 
 It is peer-to-peer, so there is no game server and no account. The host's browser runs the
 real match (the same simulation as solo, with humans plugged into characters). Everyone
-else sends their inputs and draws 20 snapshots a second. Players find each other through
-big public Nostr relays and WebTorrent trackers at the same time (two independent routes),
-using [Trystero](https://github.com/dmotz/trystero) bundled inline, and then talk over WebRTC.
+else sends their inputs and draws 20 snapshots a second. Players find each other three ways at
+once: public Nostr relays and WebTorrent trackers (via [Trystero](https://github.com/dmotz/trystero))
+and the free [PeerJS](https://peerjs.com) cloud broker, all bundled inline. Whichever connects first
+carries the match over WebRTC.
 Online play needs the https link: plain http pages and in-app previews block it.
 
 Things to know:
