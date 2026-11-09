@@ -3074,7 +3074,10 @@ async function makeTransport(code, onMsg, onJoin, onLeave){
   const pjWire = conn => {
     let pid = null;
     const hi = () => { try { conn.send({sys:'id', id:T.selfId}); } catch(e){} };
-    conn.on('open', hi);
+    pj.inc = (pj.inc || 0) + 1; pj.ds = 'linking';
+    const watchIce = () => { const pc = conn.peerConnection; if (pc && !pc.__w){ pc.__w = 1; pc.addEventListener('iceconnectionstatechange', () => { pj.ds = 'ice ' + pc.iceConnectionState; }); } };
+    watchIce(); setTimeout(watchIce, 300); setTimeout(watchIce, 1500);
+    conn.on('open', () => { pj.ds = 'open'; hi(); });
     conn.on('data', d => {
       if (d && d.sys === 'id'){ if (!pid && typeof d.id === 'string'){ pid = d.id; pjAdopt(conn, pid); } return; }
       if (pid) onMsg(d, pid);
@@ -3130,7 +3133,7 @@ async function makeTransport(code, onMsg, onJoin, onLeave){
   const openCount = socks => { try { return Object.values(socks() || {}).filter(w => w && w.readyState === 1).length; } catch(e){ return 0; } };
   return {self:T.selfId, local:false, go(){},
     send:(d, to) => { if (to) sendTo(d, to); else Object.keys(route).forEach(id => sendTo(d, id)); },
-    status:() => { const n = openCount(T.nostrSockets), tt = openCount(T.torrentSockets); return {servers:n + tt + (pj.up ? 1 : 0), peers:Object.keys(route).length, detail:'relays ' + n + ' · trackers ' + tt + ' · peerjs ' + (pj.up ? 'ok' : (pj.err || 'connecting'))}; },
+    status:() => { const n = openCount(T.nostrSockets), tt = openCount(T.torrentSockets); return {servers:n + tt + (pj.up ? 1 : 0), peers:Object.keys(route).length, detail:'relays ' + n + ' · trackers ' + tt + ' · peerjs ' + (pj.up ? 'ok' : (pj.err || 'connecting')) + (pj.err && pj.up ? ' (' + pj.err + ')' : '') + (pj.inc ? ' · link ' + pj.ds : '')}; },
     leave:() => { rooms.forEach(r => { try { r.leave(); } catch(e){} }); if (pj.stop) pj.stop(); }};
 }
 
