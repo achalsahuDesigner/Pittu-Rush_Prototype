@@ -3108,7 +3108,7 @@ async function makeTransport(code, onMsg, onJoin, onLeave){
       });
       if (isHost) peer.on('connection', pjWire);
       peer.on('disconnected', () => { pj.up = false; if (!pj.dead) try { peer.reconnect(); } catch(e){} });
-      peer.on('error', e => { console.warn('peerjs', e && e.type, e); if (isHost && e && e.type === 'unavailable-id') pj.idTaken = true; });
+      peer.on('error', e => { pj.err = (e && e.type) || 'error'; console.warn('peerjs', e && e.type, e); if (isHost && e && e.type === 'unavailable-id') pj.idTaken = true; });
       pj.stop = () => { pj.dead = true; clearTimeout(dial); try { peer.destroy(); } catch(e){} };
     } catch(e){ console.warn('peerjs route failed', e); }
   }
@@ -3130,7 +3130,7 @@ async function makeTransport(code, onMsg, onJoin, onLeave){
   const openCount = socks => { try { return Object.values(socks() || {}).filter(w => w && w.readyState === 1).length; } catch(e){ return 0; } };
   return {self:T.selfId, local:false, go(){},
     send:(d, to) => { if (to) sendTo(d, to); else Object.keys(route).forEach(id => sendTo(d, id)); },
-    status:() => ({servers:openCount(T.nostrSockets) + openCount(T.torrentSockets) + (pj.up ? 1 : 0), peers:Object.keys(route).length}),
+    status:() => { const n = openCount(T.nostrSockets), tt = openCount(T.torrentSockets); return {servers:n + tt + (pj.up ? 1 : 0), peers:Object.keys(route).length, detail:'relays ' + n + ' · trackers ' + tt + ' · peerjs ' + (pj.up ? 'ok' : (pj.err || 'connecting'))}; },
     leave:() => { rooms.forEach(r => { try { r.leave(); } catch(e){} }); if (pj.stop) pj.stop(); }};
 }
 
@@ -3552,14 +3552,14 @@ function netTick(rdt){
       const why = inRoom ? (st.peers ? 'Players are here but none is hosting ' + NET.code + '. Check the code with your host.' : 'Nobody is hosting ' + NET.code + ' on this page right now. Check the code, and make sure your host has this same page open.') : st.servers === 0 ? 'Could not reach any matchmaking servers. Your network may be blocking them: try another Wi-Fi or mobile data.'
         : st.peers === 0 ? 'No room found for ' + NET.code + '. Check the code, and keep the host\'s game open and on screen.'
         : 'Found players but could not connect to the host. This network may block direct connections: try another Wi-Fi or mobile data.';
-      const code = NET.code; netLeave(); netOpenScreen(code); netOnlineStatus(why, true); return;
+      const code = NET.code, dt = st.detail ? ' [' + st.detail + ']' : ''; netLeave(); netOpenScreen(code); netOnlineStatus(why + dt, true); return;
     }
     NET.stT = (NET.stT || 0) + rdt;
-    if (NET.stT > 0.5){ NET.stT = 0; netOnlineStatus('Looking for room ' + NET.code + '… ' + Math.ceil((35000 - w)/1000) + ' s · ' + (inRoom ? (st.servers ? 'connected' : 'connecting') : st.servers + ' matchmaking server' + (st.servers === 1 ? '' : 's') + ' connected') + (st.peers ? ' · ' + st.peers + ' player' + (st.peers === 1 ? '' : 's') + ' found' : ''), false); }
+    if (NET.stT > 0.5){ NET.stT = 0; netOnlineStatus('Looking for room ' + NET.code + '… ' + Math.ceil((35000 - w)/1000) + ' s · ' + (inRoom ? (st.servers ? 'connected' : 'connecting') : st.servers + ' matchmaking server' + (st.servers === 1 ? '' : 's') + ' connected') + (st.peers ? ' · ' + st.peers + ' player' + (st.peers === 1 ? '' : 's') + ' found' : '') + (st.detail ? ' [' + st.detail + ']' : ''), false); }
   }
   if (NET.host && !NET.match && !$('lobby').hidden){
     NET.stT = (NET.stT || 0) + rdt;
-    if (NET.stT > 1){ NET.stT = 0; const st = NET.t.status ? NET.t.status() : {servers:0}; $('lbNet').textContent = NET.t.kind === 'room' ? (st.servers ? 'Room is live on this page · friends open the same link and enter the code' : 'Connecting…') : st.servers ? 'Room is live · ' + st.servers + ' matchmaking servers connected' : 'Connecting to matchmaking servers…'; $('lbNet').classList.toggle('bad', !st.servers); }
+    if (NET.stT > 1){ NET.stT = 0; const st = NET.t.status ? NET.t.status() : {servers:0}; $('lbNet').textContent = NET.t.kind === 'room' ? (st.servers ? 'Room is live on this page · friends open the same link and enter the code' : 'Connecting…') : st.servers ? 'Room is live · ' + st.servers + ' matchmaking servers connected' + (st.detail ? ' [' + st.detail + ']' : '') : 'Connecting to matchmaking servers…'; $('lbNet').classList.toggle('bad', !st.servers); }
   }
   if (!NET.match) return;
   let mx = 0, mz = 0;
