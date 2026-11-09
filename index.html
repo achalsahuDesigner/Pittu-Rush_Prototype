@@ -2996,9 +2996,10 @@ async function makeRoomTransport(room, code, onMsg, onJoin, onLeave){
     status(){ return {servers:nr.connected() ? 1 : 0, peers:known.size}; },
     leave(){ clearInterval(tick); nr.leave().catch(() => {}); }};
 }
+const USE_ARTIFACT_ROOM = false; // public play goes through Trystero so anyone with the GitHub link can join
 async function makeTransport(code, onMsg, onJoin, onLeave){
   const local = /[?&]net=local/.test(location.search);
-  if (!local){ const room = await roomP; if (room) return makeRoomTransport(room, code, onMsg, onJoin, onLeave); }
+  if (!local && USE_ARTIFACT_ROOM){ const room = await roomP; if (room) return makeRoomTransport(room, code, onMsg, onJoin, onLeave); }
   if (!local && !window.Trystero) throw new Error('Online play is not available here.');
   if (local) netTransportLocal = true;
   if (local){
@@ -3708,11 +3709,9 @@ document.querySelectorAll('.lbset .stp').forEach(b => b.onclick = () => {
   NET.cfg[k] = clamp(NET.cfg[k] + d, lo, 4); S[k === 'nb' ? 'netB' : 'netF'] = NET.cfg[k]; persist(); netBroadcastLobby();
 });
 $('lbLeave').onclick = () => netLeave();
-const PROTO_URL = 'https://claude.ai/artifact/32Lbc9LBtEAft9aMAE5ua8';
+const PROTO_URL = 'https://achalsahudesigner.github.io/Pittu-Rush_Prototype/';
 $('lbCopy').onclick = () => {
-  const text = inArtifact
-    ? 'Play Pittu Rush with me! Open ' + PROTO_URL + ' , tap Play Online and join room ' + NET.code
-    : 'Play Pittu Rush with me! ' + location.origin + location.pathname + '#join=' + NET.code + ' (room ' + NET.code + ')';
+  const text = 'Play Pittu Rush with me! ' + PROTO_URL + '#join=' + NET.code + ' (open in Chrome, room ' + NET.code + ')';
   const show = () => { const f = $('lbInvite'); f.hidden = false; f.value = text; f.focus(); f.select(); };
   const done = () => { $('lbCopy').textContent = 'Invite copied'; setTimeout(() => $('lbCopy').textContent = 'Copy invite', 1600); };
   try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, show); else show(); } catch(e){ show(); }
