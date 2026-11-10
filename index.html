@@ -1650,7 +1650,8 @@ function startSmash(){
   danger.visible = false; marker.visible = false; arrow.visible = false;
   $('dashBtn').hidden = true; $('joy').hidden = true;
   camMode = 'smash'; readyBall();
-  if (side === 'field'){
+  if (online()){ /* each player gets their own role banner */ }
+  else if (side === 'field'){
     const nb = round >= 5 ? 4 : 3;
     banner(round === 1 ? 'Defend!' : 'Round ' + round, 'They get 3 throws · ' + nb + ' builders' + (windX ? ' · wind' : ''), 1.6);
   } else if (round === 1) banner('Smash!', 'Knock down ' + needDown() + ' or more slabs', 1.5); else banner('Round ' + round, fielderCount() + ' fielders' + (windX ? ' · wind' : ''), 1.5);
@@ -3105,7 +3106,7 @@ async function makeTransport(code, onMsg, onJoin, onLeave){
         if (!isHost){
           const tryDial = () => {
             if (pj.dead || route[hostPid] !== undefined || Object.keys(pj.conns).length) return;
-            const c = peer.connect(hostPid, {reliable:true, serialization:'json'}); pjWire(c);
+            const c = peer.connect(hostPid, {reliable:false, serialization:'json'}); pjWire(c);
             dial = setTimeout(tryDial, 4000);
           };
           tryDial();
@@ -3199,7 +3200,7 @@ function netOnMsg(m, from){
     }
     if (!p) return;
     if (m.t === 'team' && !NET.match){ const t = m.team ? 1 : 0; if (NET.players.filter(q => q.team === t).length < 4){ p.team = t; netBroadcastLobby(); } return; }
-    if (m.t === 'in'){ NET.inputs[from] = {at:performance.now(), mx:clamp(+m.mx || 0, -1, 1), mz:clamp(+m.mz || 0, -1, 1), aim:m.aim && isFinite(m.aim[0]) ? {x:m.aim[0], z:m.aim[1]} : null}; return; }
+    if (m.t === 'in'){ NET.inputs[from] = {at:performance.now(), ts:+m.ts || 0, mx:clamp(+m.mx || 0, -1, 1), mz:clamp(+m.mz || 0, -1, 1), aim:m.aim && isFinite(m.aim[0]) ? {x:m.aim[0], z:m.aim[1]} : null}; return; }
     if (m.t === 'ev'){ netHandleEvent(from, m); return; }
     return;
   }
@@ -3212,7 +3213,7 @@ function netOnMsg(m, from){
   if (m.t === 'round'){ netApplyRound(m); return; }
   if (m.t === 'players'){ NET.players = m.players; return; }
   if (m.t === 'fx'){ if (NET.match) m.fx.forEach(netPlayFx); return; }
-  if (m.t === 's'){ NET.snap = m; NET.lastSnap = performance.now(); netApplySnapTargets(m); return; }
+  if (m.t === 's'){ if (NET.snap && m.q <= NET.snapQ) return; NET.snapQ = m.q; NET.snap = m; NET.snapNew = true; NET.lastSnap = performance.now(); netApplySnapTargets(m); return; }
   if (m.t === 'end'){ netShowResults(m); return; }
 }
 function netBroadcastLobby(){ if (!NET || !NET.host) return; netSendAll({t:'lobby', players:NET.players, stack:S.stack || 7, cfg:NET.cfg}); netShowLobby(); }
@@ -3272,7 +3273,6 @@ function myRole(){
 function netSmasher(){ return !!(NET && NET.smasher && (NET.smasher === NET.me || NET.players.some(p => p.id === NET.smasher))); }
 function netAfterStartSmash(){
   const b = TEAM_NAMES[NET.buildTeam], f = TEAM_NAMES[1 - NET.buildTeam];
-  banner('Round ' + round, b + ' smash · ' + f + ' defend', 1.8);
   player.label.visible = false;
   if (round === 1) netFx({k:'feed', text:'First to ' + WIN_ROUNDS + ' rounds wins'});
 }
@@ -3459,7 +3459,8 @@ builderOut = (function(orig){
 function netSnapshot(){
   const sm = phase === 'smash' || phase === 'smashWatch' || phase === 'settle';
   const h = ball.state === 'held' ? fielders.indexOf(ball.holder) : -1, hInp = h >= 0 && NET.ctl ? netInput(NET.ctl) : null;
-  return {t:'s', ph:phase, r:round, tl:throwsLeft, pl:placed, rt:r2(rebuildT), par, wx:r2(windX || 0), sc:NET.teamScore, bt:NET.buildTeam,
+  const ak = {}; for (const id in NET.inputs){ const e = NET.inputs[id]; if (e && e.ts) ak[id.slice(0, 5)] = e.ts; }
+  return {t:'s', q:(NET.sq = (NET.sq || 0) + 1), ak, ph:phase, r:round, tl:throwsLeft, pl:placed, rt:r2(rebuildT), par, wx:r2(windX || 0), sc:NET.teamScore, bt:NET.buildTeam,
     aim:phase === 'smash' ? [r3(aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : lockedYaw), aimStage === 'dir' ? 0 : 1, r2(aimStage === 'dir' ? 0.55 : powerAt(aimT)), ballReady ? 1 : 0] : null,
     B:builders.map(b => [r2(b.x), r2(b.z), r2(b.face), (b.active ? 1 : 0) | (b.out ? 2 : 0) | (b.mesh.visible ? 4 : 0) | (b.dashT > 0 ? 8 : 0), b.carry ? b.carry.i : -1]),
     F:fielders.map(f => [r2(f.x), r2(f.z), r2(f.mesh.rotation.y), (f.active ? 1 : 0) | (f.mesh.visible ? 4 : 0), r2(f.cd > 0 ? 1 - f.cd/f.reload : 1)]),
@@ -3473,6 +3474,39 @@ function netApplySnapTargets(m){
   // characters, stones and the ball ease toward these every frame
   m.B.forEach((a, k) => { const b = builders[k]; b.tgt = a; });
   m.F.forEach((a, k) => { const f = fielders[k]; f.tgt = a; });
+}
+
+/* guest-side prediction: your own character moves the instant you press, and is nudged back only if the host disagrees */
+function netPredict(rdt, m){
+  const me = myRole(), P = NET.pred || (NET.pred = {on:false, x:0, z:0, vx:0, vz:0, face:0, hist:[]});
+  const ch = me && me.ch, b = me && me.role === 'build';
+  const ok = !!(ch && phase === 'rebuild' && ch.active && !(b && ch.out) && !iHoldBall() && !(m && b && (m.B[me.i][3] & 8)) && NET.local);
+  if (!ok){ P.on = false; P.hist.length = 0; return; }
+  const hp = b ? m.B[me.i] : m.F[me.i];
+  if (!P.on){ P.on = true; P.x = hp[0]; P.z = hp[1]; P.vx = P.vz = 0; P.face = ch.mesh.rotation.y; }
+  let mx = NET.local.mx, mz = NET.local.mz; const len = Math.hypot(mx, mz); if (len > 1){ mx /= len; mz /= len; }
+  const sp = b ? 6.3*(ch.carry ? 0.72 + 0.04*ch.carry.i : 1) : 6.1, k = 1 - Math.exp(-rdt*14);
+  P.vx = lerp(P.vx, mx*sp, k); P.vz = lerp(P.vz, mz*sp, k);
+  P.x += P.vx*rdt; P.z += P.vz*rdt;
+  pushOut(P, 0.45);
+  if (!b){ const r = Math.hypot(P.x, P.z); if (r < DANGER_R && !(ball.state === 'loose' && Math.hypot(ball.x, ball.z) < DANGER_R + 1.2)){ P.x = P.x/(r || 1)*DANGER_R; P.z = P.z/(r || 1)*DANGER_R; } }
+  const now = performance.now(); P.hist.push([now, P.x, P.z]); while (P.hist.length > 90) P.hist.shift();
+  if (NET.snapNew){
+    NET.snapNew = false;
+    const ts = m.ak && m.ak[NET.me.slice(0, 5)];
+    if (ts){
+      let h = null; for (let i = P.hist.length - 1; i >= 0; i--){ if (P.hist[i][0] <= ts + 8){ h = P.hist[i]; break; } }
+      if (h){
+        const ex = hp[0] - h[1], ez = hp[1] - h[2], ed = Math.hypot(ex, ez);
+        if (ed > 2.5){ P.x = hp[0]; P.z = hp[1]; P.hist.length = 0; }
+        else if (ed > 0.25){ P.x += ex*0.25; P.z += ez*0.25; }
+      }
+    } else if (Math.hypot(hp[0] - P.x, hp[1] - P.z) > 3){ P.x = hp[0]; P.z = hp[1]; }
+  }
+  if (Math.hypot(P.vx, P.vz) > 0.5) P.face = Math.atan2(P.vx, P.vz);
+  ch.x = P.x; ch.z = P.z; ch.vx = P.vx; ch.vz = P.vz;
+  ch.mesh.position.x = P.x; ch.mesh.position.z = P.z;
+  if (b){ ch.face = P.face; ch.mesh.rotation.y = P.face; } else ch.mesh.rotation.y = lerpAngle(ch.mesh.rotation.y, P.face, 1 - Math.exp(-rdt*14));
 }
 function netGuestFrame(rdt, now){
   const m = NET.snap, k = 1 - Math.exp(-rdt*14), kq = 1 - Math.exp(-rdt*18);
@@ -3508,6 +3542,7 @@ function netGuestFrame(rdt, now){
       if (phase === 'rebuild' && f.active){ const mine = myRole() && myRole().ch === f; setRing(f, frac, frac < 1 ? 0xFFF7E6 : (mine ? 0x2A8C84 : 0x8EC5FF), frac < 1 ? 0.75 : 0.7); f.ring.visible = true; }
       else f.ring.visible = false;
     });
+    netPredict(rdt, m);
     const P = m.P; player.mesh.visible = !!P[3];
     player.mesh.position.x = lerp(player.mesh.position.x, P[0], k); player.mesh.position.z = lerp(player.mesh.position.z, P[1], k); player.mesh.rotation.y = P[2];
     player.x = player.mesh.position.x; player.z = player.mesh.position.z;
@@ -3577,7 +3612,7 @@ function netTick(rdt){
   if (NET.sendT >= 1/NET_HZ){
     NET.sendT = 0;
     if (NET.host){ if (NET.players.length > 1){ if (NET.fx.length) netSendAll({t:'fx', fx:NET.fx.splice(0, 12)}); netSendAll(netSnapshot()); } else NET.fx.length = 0; }
-    else netSend({t:'in', mx:r2(NET.local.mx), mz:r2(NET.local.mz), aim:NET.local.aim ? [r2(NET.local.aim.x), r2(NET.local.aim.z)] : null}, NET.hostId);
+    else netSend({t:'in', ts:Math.round(performance.now()), mx:r2(NET.local.mx), mz:r2(NET.local.mz), aim:NET.local.aim ? [r2(NET.local.aim.x), r2(NET.local.aim.z)] : null}, NET.hostId);
   }
 }
 function netFollow(){
@@ -3612,6 +3647,12 @@ function netAfterFrame(){
   if (me && phase === 'rebuild' && yc.active && !(me.role === 'build' && me.ch.out)){ youMark.visible = true; youMark.position.set(yc.x, 2.95 + Math.sin(performance.now()/180)*0.1, yc.z); }
   else youMark.visible = false;
   if (sm) player.label.visible = false;
+  if (phase === 'smash' && NET.roleKey !== round + ':' + bt){
+    NET.roleKey = round + ':' + bt;
+    if (me) banner.raw('Round ' + round, me.role === 'build' ? 'You are a BUILDER · smash the stack, then rebuild it' : 'You are a SEEKER · defend, then hit the builders with the ball', 2.6);
+    else banner.raw('Round ' + round, TEAM_NAMES[bt] + ' build · ' + TEAM_NAMES[1 - bt] + ' seek', 2.2);
+  }
+  if (sm && me && me.role === 'field'){ aimLine.visible = false; dots.forEach(d => d.visible = false); }
   $('power').hidden = !(phase === 'smash' && NET.smasher === NET.me && aimStage === 'power' && ballReady);
   $('netHud').classList.toggle('lift', !$('power').hidden);
   document.body.classList.add('net');
@@ -3816,8 +3857,9 @@ $('nmResume').onclick = () => netMenuToggle(false);
 $('nmLeave').onclick = () => netLeave(NET && NET.host ? 'You closed the room.' : 'You left the match.');
 $('roRematch').onclick = () => netBackToLobby();
 $('roLeave').onclick = () => netLeave();
-if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittu = () => { const me = myRole(); return {phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, ctl:NET && NET.ctl === NET.me, role:$('nRole').textContent, act:[builders.filter(b => b.active).length, fielders.filter(f => f.active).length], fpos:fielders.map(f => [r2(f.x), r2(f.z)]), B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), snapLen:NET && NET.host && NET.match ? JSON.stringify(netSnapshot()).length : 0, rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
+if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittu = () => { const me = myRole(); return {aimOn:aimLine.visible, dotsOn:dots.some(d => d.visible), banT:$('bannerT').textContent, banS:$('bannerS').textContent, mine:me ? [me.role, me.i, me.ch.x, me.ch.z] : null, phase, round, placed, n:stones.length, sc:NET && NET.teamScore, ball:ball.state, holder:ball.holder ? charId(ball.holder) : null, me:me ? me.role + me.i : null, myPos:me ? [r2(me.ch.x), r2(me.ch.z)] : null, out:me && me.ch.out, smasher:NET && NET.smasher === NET.me, ctl:NET && NET.ctl === NET.me, role:$('nRole').textContent, act:[builders.filter(b => b.active).length, fielders.filter(f => f.active).length], fpos:fielders.map(f => [r2(f.x), r2(f.z)]), B:builders.map(b => b.human ? 'H' + (b.out ? 'x' : '') : 'b'), F:fielders.map(f => f.human ? 'H' : 'b'), bpos:builders.map(b => [r2(b.x), r2(b.z), b.out ? 1 : 0, b.active ? 1 : 0]), next:stones[placed] ? [r2(stones[placed].x), r2(stones[placed].z)] : null, carry:!!(me && me.ch.carry), snapLen:NET && NET.host && NET.match ? JSON.stringify(netSnapshot()).length : 0, rt:rebuildT, feed:$('feed').innerText, ay:aimStage === 'dir' ? Math.sin(aimT*aimSpeed())*0.42 : null, pw:aimStage === 'power' ? powerAt(aimT) : null}; };
 if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittuAct = ev => netLocalEvent(ev);
+if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittuCh = (r, i) => { const c = r === 'build' ? builders[i] : fielders[i]; return [c.x, c.z]; };
 if (/[?&](net=local|mock=1)/.test(location.search)) window.__pittuGive = k => { if (NET && NET.host && phase === 'rebuild'){ const f = fielders[k]; ball = {state:'held', holder:f, x:f.x, z:f.z, y:1.1}; f.cd = 0; f.holdT = 0; } };
 addEventListener('keydown', e => { if (e.code === 'Escape' && !$('online').hidden && !(NET && NET.host)) $('netBack').click(); });
 (function(){ const m = location.hash.match(/join=([A-Za-z0-9]{5})/); if (m) setTimeout(() => netOpenScreen(cleanCode(m[1])), 50); })();
